@@ -1,5 +1,5 @@
-# banco de dados do CES muito grande
-ces/
+# Arquivos de dados são muito grandes para serem versionados
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

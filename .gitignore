@@ -1,3 +1,6 @@
+# banco de dados do CES muito grande
+ces/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

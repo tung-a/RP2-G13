@@ -1,6 +1,3 @@
-# Arquivos de dados são muito grandes para serem versionados
-data/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

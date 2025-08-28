@@ -15,19 +15,6 @@ def read_csvs(paths):
             print(f"File not found: {path}")
     return dfs
 
-def transform_cursos_data(dfs):
-    print("Transformando dados...")
-    filtered = []
-    for df in dfs:
-        if 'SG_UF' in df.columns:
-            filtered.append(df[df['SG_UF'] == 'SP'])
-        elif 'SG_UF_IES' in df.columns:
-            filtered.append(df[df['SG_UF_IES'] == 'SP'])
-        else:
-            print("Coluna de UF não encontrada em um dos DataFrames, pulando...")
-    print("Transformação concluída")
-    return pd.concat(filtered, ignore_index=True)
-
 def main():
     print("Iniciando leitura dos arquivos...")
     cursos_dfs = read_csvs(csv_cursos_paths)
@@ -39,12 +26,6 @@ def main():
     enem_dfs = read_csvs(csv_enem_paths)
     enem_dfs = pd.concat(enem_dfs, ignore_index=True)
     enem_dfs.to_csv('data/transformed_data/enem.csv', index=False, sep=';')
-
-    '''print("Escrevendo dados transformados...")
-    cursos_sp = transform_cursos_data(cursos_dfs)
-    cursos_sp.to_csv('data/transformed_data/cursos_sp.csv', index=False, sep=';')    
-    ies_sp = transform_cursos_data(ies_dfs)
-    ies_sp.to_csv('data/transformed_data/ies_sp.csv', index=False, sep=';')'''
 
 if __name__ == "__main__":
     main()

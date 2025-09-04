@@ -29,9 +29,9 @@ enem_cols_to_keep = [
 
 # --- Caminhos dos Arquivos ---
 
-csv_cursos_paths = ['data/ces/microdata_20' + str(i) + '/dados/MICRODADOS_CADASTRO_CURSOS_20' + str(i) + '.csv' for i in range(19, 24)]
-csv_IES_paths = ['data/ces/microdata_20' + str(i) + '/dados/MICRODADOS_CADASTRO_IES_20' + str(i) + '.csv' for i in range(19, 24)]
-csv_enem_paths = ['data/enem/microdata_20' + str(i) + '/DADOS/MICRODADOS_ENEM_20' + str(i) + '.csv' for i in range(23, 24)]
+csv_cursos_paths = ['data/ces/microdata_20' + str(i) + '/dados/MICRODADOS_CADASTRO_CURSOS_20' + str(i) + '.csv' for i in range(20, 24)]
+csv_IES_paths = ['data/ces/microdata_20' + str(i) + '/dados/MICRODADOS_CADASTRO_IES_20' + str(i) + '.csv' for i in range(20, 24)]
+csv_enem_paths = ['data/enem/microdata_20' + str(i) + '/MICRODADOS_ENEM_20' + str(i) + '.csv' for i in range(20, 24)]
 
 def read_and_filter_csvs(paths, columns_to_keep):
     """

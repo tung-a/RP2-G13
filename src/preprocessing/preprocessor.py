@@ -18,15 +18,15 @@ def load_data():
         return cursos_df, ies_df, enem_df
     except FileNotFoundError as e:
         print(f"!!! ERRO: Arquivo não encontrado: {e.filename} !!!")
-        print("Por favor, execute o script 'src/csv_transformer.py' primeiro para gerar os arquivos tratados.\n")
+        print("Por favor, execute o script 'src/data_processing/csv_transformer.py' primeiro para gerar os arquivos tratados.\n")
         return None, None, None
 
-def preprocess_data(cursos_df, ies_df, enem_df):
+def preprocess_data(enem_df):
     """
-    Executa o pré-processamento e a normalização dos dados,
+    Executa o pré-processamento e a normalização dos dados do ENEM,
     seguindo as diretrizes do arquivo article.tex.
     """
-    print("--- Iniciando Pré-processamento e Transformação ---")
+    print("--- Iniciando Pré-processamento e Transformação (ENEM) ---")
 
     # Definindo colunas numéricas e categóricas
     numeric_features_enem = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT', 'NU_NOTA_REDACAO']
@@ -60,20 +60,15 @@ def preprocess_data(cursos_df, ies_df, enem_df):
     enem_processed = preprocessor_enem.fit_transform(enem_df)
     print("Dados do ENEM processados com sucesso.")
 
-    # --- INÍCIO DA SEÇÃO CORRIGIDA ---
-
     # Obter os novos nomes das colunas após o One-Hot Encoding
     ohe_feature_names = preprocessor_enem.named_transformers_['cat']['onehot'].get_feature_names_out(categorical_features_enem).tolist()
 
     # Identificar as colunas do remainder na ordem correta
-    # O ColumnTransformer coloca as colunas do remainder no final
     processed_cols = numeric_features_enem + categorical_features_enem
     remainder_cols = [col for col in enem_df.columns if col not in processed_cols]
 
     # Construir a lista final de nomes de colunas na ordem correta
     all_feature_names = numeric_features_enem + ohe_feature_names + remainder_cols
-
-    # --- FIM DA SEÇÃO CORRIGIDA ---
 
     # Criar o DataFrame final
     enem_processed_df = pd.DataFrame(enem_processed, columns=all_feature_names)
@@ -81,12 +76,13 @@ def preprocess_data(cursos_df, ies_df, enem_df):
     print("\nPré-visualização do DataFrame do ENEM processado e normalizado:")
     print(enem_processed_df.head())
     print(f"\nFormato do DataFrame processado: {enem_processed_df.shape}")
-    print("\n--- Fim do Pré-processamento ---")
+    print("\n--- Fim do Pré-processamento (ENEM) ---")
 
     return enem_processed_df
 
 
 if __name__ == "__main__":
-    cursos_df, ies_df, enem_df = load_data()
-    if enem_df is not None:
-        processed_enem_data = preprocess_data(cursos_df, ies_df, enem_df)
+    _, _, enem_df_main = load_data()
+    if enem_df_main is not None:
+        # A função agora recebe apenas o dataframe do ENEM
+        processed_enem_data = preprocess_data(enem_df_main)

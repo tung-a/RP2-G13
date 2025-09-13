@@ -17,6 +17,7 @@ def train_models(data):
     """
     print("--- Iniciando Treinamento dos Modelos (Foco no Censo) ---")
     os.makedirs('models', exist_ok=True)
+    os.makedirs('reports', exist_ok=True)
 
     tipos_ies = {'publica': [1, 2, 3], 'privada': [4, 5]}
 
@@ -30,20 +31,17 @@ def train_models(data):
             continue
 
         y = subset_df['ALTA_EVASAO']
-        X = subset_df.drop(columns=['ALTA_EVASAO', 'CO_IES', 'NO_MUNICIPIO'])
+        # CORREÇÃO APLICADA AQUI: 'NO_MUNICIPIO' -> 'NO_MUNICIPIO_IES'
+        X = subset_df.drop(columns=['ALTA_EVASAO', 'CO_IES', 'NO_MUNICIPIO_IES', 'TAXA_EVASAO'])
         
-        # Identificar colunas categóricas e numéricas para pré-processamento
         categorical_features = X.select_dtypes(include=['object']).columns
-        numeric_features = X.select_dtypes(include=['number']).columns
 
-        # Criar um pré-processador para converter texto em números (OneHotEncoder)
         preprocessor = ColumnTransformer(transformers=[
             ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
         ], remainder='passthrough')
 
-        # Definindo os modelos
         models = {
-            'RegressaoLogistica': LogisticRegression(max_iter=1000, random_state=42),
+            'RegressaoLogistica': LogisticRegression(max_iter=3500, random_state=42),
             'ArvoreDecisao': DecisionTreeClassifier(random_state=42, max_depth=10),
             'RandomForest': RandomForestClassifier(random_state=42, n_estimators=100, max_depth=10)
         }
@@ -51,7 +49,6 @@ def train_models(data):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
         
         for name, model in models.items():
-            # Criar o pipeline completo: pré-processamento + modelo
             pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', model)])
             
             print(f"Treinando {name}...")
@@ -59,9 +56,15 @@ def train_models(data):
             
             y_pred = pipeline.predict(X_test)
             acc = accuracy_score(y_test, y_pred)
-            print(f"Acurácia do {name} ({tipo}): {acc:.4f}")
-            print(classification_report(y_test, y_pred))
+            report = classification_report(y_test, y_pred, output_dict=True)
             
+            print(f"Acurácia do {name} ({tipo}): {acc:.4f}")
+            
+            report_df = pd.DataFrame(report).transpose()
+            report_path = f"reports/{name}_{tipo}_classification_report.csv"
+            report_df.to_csv(report_path)
+            print(f"Relatório de classificação salvo em: {report_path}")
+
             model_path = f"models/{name}_{tipo}.joblib"
             joblib.dump(pipeline, model_path)
             print(f"Modelo salvo em: {model_path}")

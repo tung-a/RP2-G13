@@ -1,75 +1,67 @@
 import os
 import sys
 
-# Adiciona o diretório 'src' ao path do Python para permitir importações diretas
-# Isso garante que o script funcione independentemente de onde for executado
+# Adiciona o diretório 'src' ao path do Python
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Importa as funções principais dos outros scripts
+# Importações necessárias
 from data_processing.csv_transformer import main as transform_csvs
-from preprocessing.preprocessor import load_data, preprocess_data
-from previewer import preview_dataframe
+from data_processing.data_integration import integrate_data # Alterado aqui
+from preprocessing.preprocessor import load_data
+from analysis.comparative_analysis import analyze_permanence
+from modeling.train import train_models
 
 def main():
     """
-    Orquestra todo o pipeline de processamento de dados, desde a transformação inicial
-    até o pré-processamento final para modelagem.
+    Orquestra o pipeline completo: transformação, integração,
+    análise comparativa e treinamento de modelos.
     """
-    print("--- INICIANDO PIPELINE DE PROCESSAMENTO DE DADOS ---")
+    print("--- INICIANDO PIPELINE DE ANÁLISE DE PERMANÊNCIA ESTUDANTIL ---")
 
-    # --- Etapa 1: Transformar os dados brutos ---
-    # Executa o script para ler os CSVs originais, filtrar colunas e
-    # salvar os arquivos tratados em 'data/transformed_data/'.
-    print("\n[ETAPA 1/3] Executando a transformação de CSVs brutos...")
+    # Etapa 1: Transformar dados brutos
+    print("\n[ETAPA 1/4] Transformando CSVs brutos...")
     try:
         transform_csvs()
-        print("[ETAPA 1/3] Transformação de CSVs concluída com sucesso.")
+        print("Transformação de CSVs concluída.")
     except Exception as e:
-        print(f"[ERRO] A etapa de transformação de CSVs falhou: {e}")
-        return # Interrompe a execução se a primeira etapa falhar
-
-    # --- Etapa 2: Visualizar os dados tratados ---
-    # Executa uma rápida visualização dos dados que acabaram de ser criados.
-    print("\n[ETAPA 2/3] Gerando preview dos dados tratados...")
-    try:
-        # Caminhos dos arquivos gerados na Etapa 1
-        csv_cursos_path = 'data/transformed_data/cursos_tratados.csv'
-        csv_ies_path = 'data/transformed_data/ies_tratados.csv'
-        csv_enem_path = 'data/transformed_data/enem_tratados.csv'
-        
-        preview_dataframe("Cursos Tratados", csv_cursos_path)
-        preview_dataframe("IES Tratados", csv_ies_path)
-        preview_dataframe("ENEM Tratados", csv_enem_path)
-        print("[ETAPA 2/3] Preview gerado com sucesso.")
-    except Exception as e:
-        print(f"[ERRO] A etapa de preview falhou: {e}")
+        print(f"[ERRO] Falha na transformação de CSVs: {e}")
         return
 
-    # --- Etapa 3: Pré-processar os dados para modelagem ---
-    # Carrega os dados tratados e aplica as transformações finais como
-    # normalização e one-hot encoding.
-    print("\n[ETAPA 3/3] Executando o pré-processamento para modelagem...")
+    # Etapa 2: Carregar e integrar dados
+    print("\n[ETAPA 2/4] Carregando e integrando dados...")
     try:
-        cursos_df, ies_df, enem_df = load_data()
-        if enem_df is not None:
-            # Foco no ENEM, conforme definido no script preprocessor.py
-            processed_enem_data = preprocess_data(cursos_df, ies_df, enem_df)
-            print("Dados do ENEM prontos para a etapa de modelagem.")
-            # Aqui você poderia salvar o 'processed_enem_data' em um novo arquivo, se quisesse
-            # processed_enem_data.to_csv('data/final_data/enem_final.csv', index=False)
-            
-            print("[ETAPA 3/3] Pré-processamento concluído com sucesso.")
+        cursos_df, ies_df, _ = load_data()
+        if cursos_df is not None and ies_df is not None:
+            # A lógica de integração agora vem do script dedicado
+            final_data = integrate_data(cursos_df, ies_df)
+            print("Dados integrados com sucesso.")
         else:
-            print("[ERRO] Não foi possível carregar os dados para o pré-processamento.")
+            print("[ERRO] Não foi possível carregar os dados para integração.")
             return
-            
     except Exception as e:
-        print(f"[ERRO] A etapa de pré-processamento falhou: {e}")
+        print(f"[ERRO] Falha na integração de dados: {e}")
+        return
+
+    # Etapa 3: Análise Comparativa
+    print("\n[ETAPA 3/4] Executando análise comparativa de permanência...")
+    try:
+        analyze_permanence(final_data.copy())
+        print("Análise comparativa concluída.")
+    except Exception as e:
+        print(f"[ERRO] Falha na análise comparativa: {e}")
+        return
+
+    # Etapa 4: Treinamento de Modelos
+    print("\n[ETAPA 4/4] Treinando modelos de previsão de evasão...")
+    try:
+        train_models(final_data)
+        print("Treinamento de modelos concluído.")
+    except Exception as e:
+        print(f"[ERRO] Falha no treinamento dos modelos: {e}")
         return
         
     print("\n--- PIPELINE FINALIZADO COM SUCESSO ---")
-    print("Próximos passos: integração dos dados e treinamento dos modelos.")
-
+    print("Relatórios e modelos foram salvos nas pastas 'reports' e 'models'.")
 
 if __name__ == "__main__":
     main()

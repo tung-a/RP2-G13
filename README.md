@@ -1,53 +1,44 @@
-# Análise Preditiva da Permanência Estudantil no Brasil
+# Análise da Permanência e Evasão no Ensino Superior Brasileiro
 
-Este projeto realiza uma análise de dados e treina modelos de machine learning para comparar e prever a evasão de estudantes em instituições de ensino superior (IES) públicas e privadas no Brasil. Utilizando dados públicos do Censo da Educação Superior (INEP), o pipeline processa, analisa e modela os fatores associados à permanência estudantil.
+Este projeto representa um pipeline completo de análise de dados, projetado para investigar os fatores relacionados à permanência e evasão de estudantes em Instituições de Ensino Superior (IES) no Brasil. Utilizando microdados públicos do Censo da Educação Superior, o projeto processa os dados, realiza análises comparativas e treina modelos de machine learning para prever a probabilidade de evasão.
 
-## Objetivos
+## Principais Funcionalidades
 
-- **Analisar Comparativamente:** Gerar estatísticas e visualizações para comparar a taxa de evasão entre IES públicas e privadas.
-- **Modelagem Preditiva:** Treinar e avaliar diferentes modelos de classificação para prever se um curso terá uma taxa de evasão "alta" ou "baixa".
-- **Pipeline Automatizado:** Criar um fluxo de trabalho de dados reproduzível, desde o tratamento dos dados brutos até a geração de relatórios e modelos treinados.
+- **Pipeline de Dados Automatizado:** Um script principal (`main.py`) orquestra todo o fluxo, desde a limpeza dos dados brutos até o treinamento dos modelos.
+- **Análise Comparativa:** Gera estatísticas e gráficos que comparam a evasão entre IES públicas e privadas, por área do conhecimento e através de uma métrica de "eficiência de conclusão".
+- **Modelagem Preditiva:** Treina e avalia múltiplos modelos de classificação (Regressão Logística, Árvore de Decisão e Random Forest) para prever cursos com alta propensão à evasão.
+- **Sistema de Teste e Predição:** Inclui scripts para testar os modelos em lote com diversos cenários e um script interativo para fazer previsões para cursos específicos.
 
 ## Estrutura do Projeto
 
-O projeto é organizado em um pipeline de dados com os seguintes módulos:
+O projeto é modularizado para garantir a clareza e a manutenibilidade do código.
 
-- `src/data_processing`: Scripts para transformar os dados brutos do Censo (`csv_transformer.py`) e integrar as bases de dados de cursos e IES (`data_integration.py`).
-- `src/analysis`: Contém a lógica para a análise estatística e visual comparativa da evasão (`comparative_analysis.py`).
-- `src/modeling`: Script responsável pelo treinamento e avaliação dos modelos de machine learning (`train.py`).
-- `src/preprocessing`: Módulo para o pré-processamento dos dados.
-- `src/main.py`: Orquestrador principal que executa todas as etapas do pipeline em sequência.
+- **`src`**: Pasta principal contendo todo o código-fonte.
+  - **`data_processing/`**: Scripts para transformar (`csv_transformer.py`) e integrar (`data_integration.py`) os dados.
+  - **`analysis/`**: Contém os diversos scripts de análise:
+    - `comparative_analysis.py`: Compara a taxa de evasão entre IES públicas e privadas.
+    - `course_area_analysis.py`: Analisa a evasão por grande área do conhecimento.
+    - `permanence_efficiency_analysis.py`: Calcula e visualiza a "eficiência de conclusão" por curso.
+    - `analyze_test_results.py`: Analisa os resultados gerados pelo script de teste em lote.
+  - **`modeling/`**: Script para treinar e salvar os modelos de machine learning (`train.py`).
+  - **`main.py`**: Orquestrador que executa o pipeline principal de processamento e treinamento.
+  - **`predict.py`**: Script interativo para fazer previsões usando os modelos treinados.
+  - **`test_predictor.py`**: Script para testar os modelos em lote com múltiplos cenários.
+- **`data/`**: Deve conter os microdados brutos do Censo e do ENEM.
+- **`reports/`**: Pasta onde todos os relatórios (gráficos `.png` e análises `.csv`) são salvos.
+- **`models/`**: Pasta onde os modelos treinados (`.joblib`) são salvos.
+- **`check_columns.py`**: Utilitário para inspecionar os nomes das colunas nos arquivos de dados brutos.
 
-## Como Executar
+## Como Executar o Projeto
 
 ### Pré-requisitos
 
 - Python 3.8 ou superior
-- Pip (gerenciador de pacotes do Python)
+- Git
 
-### 1. Estrutura de Pastas de Dados
+### 1. Configuração Inicial
 
-Antes de executar, certifique-se de que os dados brutos do Censo da Educação Superior e do ENEM estejam na seguinte estrutura dentro da pasta `data/`:
-
-```
-data/
-├── ces/
-│   ├── microdata_2020/dados/MICRODADOS_CADASTRO_CURSOS_2020.CSV
-│   │   └── ... (outros arquivos do Censo 2020)
-│   ├── microdata_2021/dados/...
-│   ├── microdata_2022/dados/...
-│   └── microdata_2023/dados/...
-└── enem/
-    ├── microdata_2020/MICRODADOS_ENEM_2020.csv
-    │   └── ... (outros arquivos do ENEM 2020)
-    ├── microdata_2021/...
-    ├── microdata_2022/...
-    └── microdata_2023/...
-```
-
-### 2. Instalação das Dependências
-
-Clone o repositório e instale as bibliotecas necessárias:
+Primeiro, clone o repositório e instale as dependências necessárias.
 
 ```bash
 git clone https://github.com/seu-usuario/RP2-G13.git
@@ -55,30 +46,48 @@ cd RP2-G13
 pip install -r requirements.txt
 ```
 
-### 3. Execução do Pipeline Completo
+### 2. Estrutura de Dados
 
-Para executar todo o processo, desde a transformação dos dados até o treinamento dos modelos, execute o script `main.py`:
+Garanta que os microdados do Censo da Educação Superior estejam descompactados e organizados dentro da pasta `data/`, seguindo a estrutura esperada pelos scripts.
+
+### 3. Executando o Pipeline Principal
+
+O script `main.py` executa o fluxo completo de processamento dos dados e treinamento dos modelos.
 
 ```bash
 python src/main.py
 ```
 
-O script irá executar as seguintes etapas:
+Ao final, as pastas `reports/` e `models/` estarão populadas com os resultados.
 
-- **Transformação dos Dados:** Lê os arquivos CSV brutos, filtra as colunas relevantes e salva os dados tratados em `data/transformed_data/`.
-- **Integração dos Dados:** Carrega os dados tratados e os une em um único dataframe.
-- **Análise Comparativa:** Gera estatísticas e gráficos comparando a evasão em IES públicas e privadas e os salva na pasta `reports/`.
-- **Treinamento dos Modelos:** Treina modelos de Regressão Logística, Árvore de Decisão e Random Forest separadamente para cada tipo de IES. Os modelos treinados são salvos na pasta `models/` e os relatórios de classificação na pasta `reports/`.
+### 4. Executando as Análises Adicionais
 
-## Saídas Geradas (Outputs)
+Após executar o `main.py` pelo menos uma vez, você pode rodar as análises específicas.
 
-Após a execução bem-sucedida, as seguintes pastas e arquivos serão criados ou atualizados:
+```bash
+# Para analisar a evasão por área do conhecimento
+python src/analysis/course_area_analysis.py
 
-- `data/transformed_data/`: Contém os arquivos CSV intermediários após a limpeza e filtragem.
-- `reports/`:
-  - `estatisticas_evasao.csv`: Tabela com estatísticas descritivas da taxa de evasão.
-  - `boxplot_taxa_evasao.png`: Gráfico de boxplot comparando a distribuição da evasão.
-  - `histograma_taxa_evasao.png`: Histograma para visualizar a frequência da evasão.
-  - `*_classification_report.csv`: Relatórios detalhados do desempenho de cada modelo treinado.
-- `models/`:
-  - `*.joblib`: Arquivos contendo os objetos dos modelos treinados, prontos para serem carregados e utilizados para predições.
+# Para analisar a eficiência de conclusão por curso
+python src/analysis/permanence_efficiency_analysis.py
+```
+
+### 5. Usando os Modelos Preditivos
+
+Para fazer previsões interativas ou testar os modelos.
+
+```bash
+# Para fazer uma previsão para um curso específico
+python src/predict.py
+
+# Para rodar o teste em lote e gerar o CSV de comparação
+python src/test_predictor.py
+
+# Para analisar os resultados do teste em lote
+python src/analysis/analyze_test_results.py
+```
+
+## Outputs Gerados
+
+- **Relatórios (`reports/`):** Contém todos os gráficos e tabelas gerados, como a comparação da taxa de evasão, o ranking de cursos por eficiência e os relatórios de classificação dos modelos.
+- **Modelos (`models/`):** Contém os arquivos `.joblib` dos modelos treinados, prontos para serem usados para predição.

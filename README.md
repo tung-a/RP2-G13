@@ -17,7 +17,6 @@ O projeto é modularizado para garantir a clareza e a manutenibilidade do códig
   - **`data_processing/`**: Scripts para transformar (`csv_transformer.py`) e integrar (`data_integration.py`) os dados.
   - **`analysis/`**: Contém os diversos scripts de análise:
     - `comparative_analysis.py`: Compara a taxa de evasão entre IES públicas e privadas.
-    - `course_area_analysis.py`: Analisa a evasão por grande área do conhecimento.
     - `permanence_efficiency_analysis.py`: Calcula e visualiza a "eficiência de conclusão" por curso.
     - `analyze_test_results.py`: Analisa os resultados gerados pelo script de teste em lote.
   - **`modeling/`**: Script para treinar e salvar os modelos de machine learning (`train.py`).
@@ -65,9 +64,6 @@ Ao final, as pastas `reports/` e `models/` estarão populadas com os resultados.
 Após executar o `main.py` pelo menos uma vez, você pode rodar as análises específicas.
 
 ```bash
-# Para analisar a evasão por área do conhecimento
-python src/analysis/course_area_analysis.py
-
 # Para analisar a eficiência de conclusão por curso
 python src/analysis/permanence_efficiency_analysis.py
 ```

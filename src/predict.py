@@ -1,107 +1,142 @@
 import joblib
 import pandas as pd
 import os
+import itertools
 
-def load_model(model_path):
-    """Carrega um modelo .joblib a partir do caminho especificado."""
-    if not os.path.exists(model_path):
-        print(f"ERRO: Arquivo do modelo não encontrado em '{model_path}'")
-        print("Por favor, execute o pipeline principal ('src/main.py') para gerar os modelos primeiro.")
-        return None
-    
-    print(f"Carregando modelo de: {model_path}")
+def predict_permanence(student_data, institution_type):
+    """
+    Carrega o modelo treinado e o pré-processador para prever o tempo de permanência
+    de um novo aluno.
+    """
+    MODELS_PATH = 'models'
+    model_path = os.path.join(MODELS_PATH, f'permanencia_model_{institution_type}.joblib')
+    preprocessor_path = os.path.join(MODELS_PATH, f'preprocessor_{institution_type}.joblib')
+
+    if not os.path.exists(model_path) or not os.path.exists(preprocessor_path):
+        return f"Modelo para instituição '{institution_type}' não encontrado. Execute o main.py primeiro."
+
     model = joblib.load(model_path)
-    return model
+    preprocessor = joblib.load(preprocessor_path)
 
-def get_course_names():
-    """Carrega e retorna uma lista de nomes de cursos únicos, já em maiúsculas."""
-    cursos_path = os.path.join('data', 'transformed_data', 'cursos_tratados.csv')
-    try:
-        df_cursos = pd.read_csv(cursos_path, sep=';', encoding='latin1')
-        # CORREÇÃO: Converte todos os nomes de curso para maiúsculas ao carregar
-        return df_cursos['NO_CINE_ROTULO'].dropna().str.upper().unique()
-    except FileNotFoundError:
-        print(f"AVISO: Arquivo de cursos não encontrado em '{cursos_path}'. Não será possível listar os cursos.")
-        return []
+    student_df = pd.DataFrame([student_data])
+    processed_data = preprocessor.transform(student_df)
+    prediction = model.predict(processed_data)
 
-def get_user_input():
-    """Coleta dados de um curso hipotético a partir da entrada do usuário."""
-    print("\n--- Entre com os dados do curso para prever a evasão ---")
-    
-    tipo_ies_input = input("O curso é de IES 'publica' ou 'privada'? ").lower()
-    while tipo_ies_input not in ['publica', 'privada']:
-        print("Entrada inválida. Por favor, digite 'publica' ou 'privada'.")
-        tipo_ies_input = input("O curso é de IES 'publica' ou 'privada'? ").lower()
-    
-    course_names = get_course_names()
+    return prediction[0]
 
-    while True:
-        prompt = "Nome do curso (digite 'LISTAR' para ver exemplos): "
-        # CORREÇÃO: Adiciona .strip() para remover espaços e mantém .upper()
-        no_cine_rotulo = input(prompt).strip().upper()
-        
-        if no_cine_rotulo == 'LISTAR':
-            if len(course_names) > 0:
-                print("\n--- Exemplo de Nomes de Cursos Válidos ---")
-                sample_size = min(20, len(course_names))
-                # Amostra da lista já em maiúsculas
-                sample_list = pd.Series(course_names).sample(sample_size)
-                # Mostra no formato "Title Case" para melhor leitura
-                for name in sample_list:
-                    print(f"- {name.title()}")
-                print("-" * 40)
-            else:
-                print("Não foi possível carregar a lista de cursos.")
-            continue
-            
-        if no_cine_rotulo not in course_names and len(course_names) > 0:
-            print("AVISO: O nome do curso digitado não foi encontrado nos dados originais. A predição pode ser imprecisa.")
-            
-        break
 
-    qt_mat_input = input("Quantidade de alunos matriculados: ")
-    while not qt_mat_input.isdigit():
-        print("Entrada inválida. Por favor, digite um número.")
-        qt_mat_input = input("Quantidade de alunos matriculados: ")
-    qt_mat = int(qt_mat_input)
-    
-    tp_cat_admin = 1 if tipo_ies_input == 'publica' else 4
-    
-    data = {
-        'NO_CINE_ROTULO': [no_cine_rotulo],
-        'QT_MAT': [qt_mat], 'QT_CONC': [0], 'QT_SIT_DESVINCULADO': [0],
-        'NO_IES': ['UNIVERSIDADE EXEMPLO'], 'SG_IES': ['UEX'],
-        'TP_CATEGORIA_ADMINISTRATIVA': [tp_cat_admin],
-        'NO_REGIAO_IES': ['Sudeste'], 'SG_UF_IES': ['SP']
+def run_and_save_all_scenarios():
+    """
+    Gera, testa e guarda num CSV todas as combinações possíveis de perfis de alunos.
+    """
+    print("--- INICIANDO TESTE EXAUSTIVO DE TODOS OS CENÁRIOS ---")
+
+    possible_values = {
+        'tp_cor_raca': {0: "Não declarado", 1: "Branca", 2: "Preta", 3: "Parda", 4: "Amarela", 5: "Indígena"},
+        'tp_sexo': {1: "Masculino", 2: "Feminino"},
+        'tp_escola_conclusao_ens_medio': {1: "Privada", 2: "Pública"},
+        'tp_modalidade_ensino': {1: "Presencial", 2: "EAD"},
+        'in_financiamento_estudantil': {0: "Não", 1: "Sim"},
+        'in_apoio_social': {0: "Não", 1: "Sim"}
     }
     
-    return pd.DataFrame(data), tipo_ies_input
+    base_values = {
+        'faixa_etaria': 3,
+        'tp_grau_academico': 1,
+        'nu_carga_horaria': 3600
+    }
 
-def main():
-    """
-    Script principal para carregar um modelo e fazer uma predição
-    com base nos dados fornecidos pelo usuário.
-    """
-    dados_curso, tipo_ies = get_user_input()
+    keys = possible_values.keys()
+    value_codes = [list(v.keys()) for v in possible_values.values()]
+    all_combinations = list(itertools.product(*value_codes))
     
-    model_name = f"RandomForest_{tipo_ies}.joblib"
-    model_path = os.path.join('models', model_name)
-    
-    pipeline = load_model(model_path)
-    
-    if pipeline:
-        print("\n--- Realizando Predição ---")
-        
-        prediction = pipeline.predict(dados_curso)
-        probabilities = pipeline.predict_proba(dados_curso)
-        
-        resultado = "ALTA EVASÃO" if prediction[0] == 1 else "BAIXA EVASÃO"
-        prob_baixa = probabilities[0][0]
-        prob_alta = probabilities[0][1]
-        
-        print(f"\nResultado da Previsão: {resultado}")
-        print(f"Confiança (Probabilidade de Baixa Evasão): {prob_baixa:.2%}")
-        print(f"Confiança (Probabilidade de Alta Evasão):  {prob_alta:.2%}")
+    print(f"Total de cenários a serem calculados: {len(all_combinations) * 2}")
 
-if __name__ == "__main__":
-    main()
+    results = []
+    
+    for combo in all_combinations:
+        student_profile = base_values.copy()
+        for i, key in enumerate(keys):
+            student_profile[key] = combo[i]
+
+        for inst_type, inst_code in [('publica', 1), ('privada', 5)]:
+            profile_for_prediction = student_profile.copy()
+            profile_for_prediction['tp_categoria_administrativa'] = inst_code
+            
+            prediction = predict_permanence(profile_for_prediction, inst_type)
+
+            if isinstance(prediction, float):
+                profile_description = {
+                    "Cor/Raça": possible_values['tp_cor_raca'][profile_for_prediction['tp_cor_raca']],
+                    "Sexo": possible_values['tp_sexo'][profile_for_prediction['tp_sexo']],
+                    "Escola Média": possible_values['tp_escola_conclusao_ens_medio'][profile_for_prediction['tp_escola_conclusao_ens_medio']],
+                    "Modalidade": possible_values['tp_modalidade_ensino'][profile_for_prediction['tp_modalidade_ensino']],
+                    "Financiamento": possible_values['in_financiamento_estudantil'][profile_for_prediction['in_financiamento_estudantil']],
+                    "Apoio Social": possible_values['in_apoio_social'][profile_for_prediction['in_apoio_social']]
+                }
+                
+                results.append({
+                    "Tipo IES": inst_type.upper(),
+                    **profile_description,
+                    "Previsão (anos)": round(prediction, 2)
+                })
+
+    results_df = pd.DataFrame(results)
+    
+    # Guardar os resultados num CSV
+    REPORTS_PATH = 'reports'
+    os.makedirs(REPORTS_PATH, exist_ok=True)
+    output_path = os.path.join(REPORTS_PATH, 'prediction_scenarios.csv')
+    results_df.to_csv(output_path, index=False)
+    
+    print(f"\n--- Todos os {len(results_df)} cenários foram guardados em: {output_path} ---")
+    
+    return output_path
+
+def analyze_predictions(csv_path):
+    """
+    Lê o ficheiro CSV com as previsões e realiza análises para extrair insights.
+    """
+    if not os.path.exists(csv_path):
+        print(f"Ficheiro de cenários não encontrado em {csv_path}")
+        return
+
+    print("\n\n--- INICIANDO ANÁLISE DOS CENÁRIOS GERADOS ---")
+    df = pd.read_csv(csv_path)
+
+    for inst_type in ['PUBLICA', 'PRIVADA']:
+        print(f"\n--- ANÁLISE PARA INSTITUIÇÕES DO TIPO: {inst_type} ---")
+        subset_df = df[df['Tipo IES'] == inst_type].copy()
+        
+        # 1. Análise de Impacto por Característica
+        print("\n[Análise 1: Impacto Médio de Cada Característica na Previsão]")
+        features_to_analyze = ["Modalidade", "Escola Média", "Financiamento", "Apoio Social", "Cor/Raça"]
+        for feature in features_to_analyze:
+            # Agrupa por característica e calcula a média da previsão
+            impact_analysis = subset_df.groupby(feature)['Previsão (anos)'].mean().sort_values(ascending=False)
+            print(f"\nImpacto da característica '{feature}':")
+            print(impact_analysis.to_string())
+            # Calcula a diferença entre o maior e o menor impacto
+            if len(impact_analysis) > 1:
+                diff = impact_analysis.max() - impact_analysis.min()
+                print(f"-> Diferença máxima de impacto: {diff:.2f} anos")
+
+        # 2. Análise dos Cenários Extremos
+        print("\n\n[Análise 2: Perfis com Maiores e Menores Previsões]")
+        max_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmax()]
+        min_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmin()]
+        
+        print("\nCenário com MAIOR tempo de permanência previsto:")
+        print(max_pred.to_string())
+        
+        print("\nCenário com MENOR tempo de permanência previsto:")
+        print(min_pred.to_string())
+
+
+if __name__ == '__main__':
+    # Passo 1: Gerar e guardar todos os cenários num ficheiro CSV
+    scenarios_csv_path = run_and_save_all_scenarios()
+    
+    # Passo 2: Analisar os resultados guardados no ficheiro CSV
+    if scenarios_csv_path:
+        analyze_predictions(scenarios_csv_path)

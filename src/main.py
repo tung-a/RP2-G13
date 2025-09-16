@@ -1,58 +1,65 @@
 import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from data_processing.csv_transformer import main as transform_csvs
-from data_processing.data_integration import integrate_data
-from preprocessing.preprocessor import load_data
-from analysis.comparative_analysis import analyze_permanence
-from modeling.train import train_models
+from data_processing.data_integration import load_and_integrate_data, split_by_institution_type
+from preprocessing.preprocessor import preprocess_data, save_preprocessor
+from modeling.train import train_model, evaluate_model, save_model
+from analysis.regression_analysis import analyze_feature_importance, save_metrics_report
 
 def main():
-    """Orquestra o pipeline completo."""
-    print("--- INICIANDO PIPELINE DE ANÁLISE DE PERMANÊNCIA ESTUDANTIL ---")
+    """
+    Executa o pipeline completo de machine learning para prever o tempo de permanência.
+    """
+    # Definição de caminhos
+    DATA_PATH = 'data'
+    MODELS_PATH = 'models'
+    REPORTS_PATH = 'reports/figures'
+    
+    os.makedirs(MODELS_PATH, exist_ok=True)
+    os.makedirs(REPORTS_PATH, exist_ok=True)
 
-    print("\n[ETAPA 1/4] Transformando CSVs brutos...")
-    try:
-        transform_csvs()
-        print("Transformação de CSVs concluída.")
-    except Exception as e:
-        print(f"[ERRO] Falha na transformação de CSVs: {e}")
+    # 1. Carga e Integração de Dados (AGORA USANDO DASK POR BAIXO DOS PANOS)
+    print("--- Iniciando Etapa 1: Carga e Integração de Dados ---")
+    integrated_df = load_and_integrate_data(DATA_PATH)
+    
+    if integrated_df.empty:
+        print("Nenhum dado retornado após a integração. Encerrando o pipeline.")
         return
 
-    print("\n[ETAPA 2/4] Carregando e integrando dados...")
-    try:
-        cursos_df, ies_df, _ = load_data()
-        if cursos_df is not None and ies_df is not None:
-            final_data = integrate_data(cursos_df, ies_df)
-            print("Dados integrados com sucesso.")
-        else:
-            print("[ERRO] Não foi possível carregar os dados para integração.")
-            return
-    except Exception as e:
-        print(f"[ERRO] Falha na integração de dados: {e}")
-        return
+    df_publica, df_privada = split_by_institution_type(integrated_df)
 
-    print("\n[ETAPA 3/4] Executando análise comparativa de permanência...")
-    try:
-        analyze_permanence(final_data.copy())
-        print("Análise comparativa concluída.")
-    except Exception as e:
-        print(f"[ERRO] Falha na análise comparativa: {e}")
-        return
+    # Dicionário para armazenar as métricas de cada modelo
+    metrics = {}
+    
+    datasets = {
+        'publica': df_publica,
+        'privada': df_privada
+    }
 
-    print("\n[ETAPA 4/4] Treinando modelos de previsão de evasão...")
-    try:
-        final_data.to_csv('data/transformed_data/dados_integrados_finais.csv', sep=';', index=False, encoding='latin1')
-        train_models(final_data)
-        print("Treinamento de modelos concluído.")
-    except Exception as e:
-        print(f"[ERRO] Falha no treinamento dos modelos: {e}")
-        return
+    for name, df in datasets.items():
+        if df.empty:
+            print(f"\n--- DataFrame '{name}' está vazio. Pulando treinamento. ---")
+            continue
+            
+        print(f"\n--- Processando Dados para Instituições do Tipo: {name.upper()} ---")
+
+        # 2. Pré-processamento
+        X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df)
+        save_preprocessor(preprocessor_pipeline, os.path.join(MODELS_PATH, f'preprocessor_{name}.joblib'))
+
+        # 3. Treinamento do Modelo
+        model = train_model(X_train, y_train)
+        save_model(model, os.path.join(MODELS_PATH, f'permanencia_model_{name}.joblib'))
         
-    print("\n--- PIPELINE FINALIZADO COM SUCESSO ---")
-    print("Relatórios e modelos foram salvos nas pastas 'reports' e 'models'.")
+        # 4. Avaliação
+        metrics[name] = evaluate_model(model, X_test, y_test)
+        
+        # 5. Análise
+        analyze_feature_importance(model, preprocessor_pipeline, REPORTS_PATH)
 
-if __name__ == "__main__":
+    # 6. Salvar Relatório Final de Métricas
+    if 'publica' in metrics and 'privada' in metrics:
+        save_metrics_report(metrics['publica'], metrics['privada'], 'reports')
+    
+    print("\n--- Pipeline concluído com sucesso! ---")
+
+if __name__ == '__main__':
     main()

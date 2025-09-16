@@ -1,88 +1,64 @@
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
+import joblib
+import os
 
-# Caminhos para os arquivos de dados JÁ TRATADOS pelo csv_transformer.py
-csv_cursos_path = 'data/transformed_data/cursos_tratados.csv'
-csv_ies_path = 'data/transformed_data/ies_tratados.csv'
-csv_enem_path = 'data/transformed_data/enem_tratados.csv'
-
-def load_data():
-    """Carrega os arquivos CSV tratados."""
-    try:
-        cursos_df = pd.read_csv(csv_cursos_path, sep=';', encoding='latin1', low_memory=False)
-        ies_df = pd.read_csv(csv_ies_path, sep=';', encoding='latin1', low_memory=False)
-        enem_df = pd.read_csv(csv_enem_path, sep=';', encoding='latin1', low_memory=False)
-        return cursos_df, ies_df, enem_df
-    except FileNotFoundError as e:
-        print(f"!!! ERRO: Arquivo não encontrado: {e.filename} !!!")
-        print("Por favor, execute o script 'src/data_processing/csv_transformer.py' primeiro para gerar os arquivos tratados.\n")
-        return None, None, None
-
-def preprocess_data(enem_df):
+def preprocess_data(df, target_column='tempo_permanencia'):
     """
-    Executa o pré-processamento e a normalização dos dados do ENEM,
-    seguindo as diretrizes do arquivo article.tex.
+    Prepara os dados para treinamento, aplicando encoding e scaling de forma robusta.
     """
-    print("--- Iniciando Pré-processamento e Transformação (ENEM) ---")
+    # 1. Remover linhas com dados faltantes para garantir a qualidade
+    df.dropna(inplace=True)
 
-    # Definindo colunas numéricas e categóricas
-    numeric_features_enem = ['NU_NOTA_CN', 'NU_NOTA_CH', 'NU_NOTA_LC', 'NU_NOTA_MT', 'NU_NOTA_REDACAO']
-    categorical_features_enem = [
-        'TP_FAIXA_ETARIA', 'TP_SEXO', 'TP_ESTADO_CIVIL', 'TP_COR_RACA',
-        'TP_ESCOLA', 'Q001', 'Q002', 'Q006'
-    ]
+    X = df.drop(target_column, axis=1)
+    y = df[target_column]
 
-    # Pipeline para variáveis numéricas
-    numeric_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='median')),
-        ('scaler', MinMaxScaler())
-    ])
+    # 2. Identificar colunas categóricas e numéricas
+    categorical_features = X.select_dtypes(include=['object', 'category']).columns.tolist()
+    numerical_features = X.select_dtypes(include=['int64', 'float64', 'int32', 'float32']).columns.tolist()
 
-    # Pipeline para variáveis categóricas
-    categorical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='most_frequent')),
-        ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
-    ])
+    # 3. Identificar e remover colunas categóricas com muitas categorias (alta cardinalidade)
+    #    Isso evita a criação de um número excessivo de features.
+    high_cardinality_cols = [col for col in categorical_features if X[col].nunique() > 50]
+    categorical_features = [col for col in categorical_features if col not in high_cardinality_cols]
+    
+    print(f"Colunas numéricas identificadas: {numerical_features}")
+    print(f"Colunas categóricas identificadas (baixa cardinalidade): {categorical_features}")
+    print(f"Colunas categóricas descartadas (alta cardinalidade): {high_cardinality_cols}")
 
-    # Criando o pré-processador com o ColumnTransformer
-    preprocessor_enem = ColumnTransformer(
+    # 4. Criar os transformadores
+    numerical_transformer = StandardScaler()
+    categorical_transformer = OneHotEncoder(handle_unknown='ignore')
+
+    # --- CORREÇÃO APLICADA AQUI ---
+    # Alterado remainder='passthrough' para remainder='drop'.
+    # Isso garante que qualquer coluna não especificada (como as de alta cardinalidade)
+    # seja descartada em vez de enviada ao modelo.
+    preprocessor = ColumnTransformer(
         transformers=[
-            ('num', numeric_transformer, numeric_features_enem),
-            ('cat', categorical_transformer, categorical_features_enem)
+            ('num', numerical_transformer, numerical_features),
+            ('cat', categorical_transformer, categorical_features)
         ],
-        remainder='passthrough'
+        remainder='drop'
     )
 
-    print("\nPré-processando dados do ENEM...")
-    enem_processed = preprocessor_enem.fit_transform(enem_df)
-    print("Dados do ENEM processados com sucesso.")
+    # 5. Dividir os dados em treino e teste
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Obter os novos nomes das colunas após o One-Hot Encoding
-    ohe_feature_names = preprocessor_enem.named_transformers_['cat']['onehot'].get_feature_names_out(categorical_features_enem).tolist()
+    # 6. Criar e treinar o pipeline de pré-processamento
+    pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
+    
+    X_train_processed = pipeline.fit_transform(X_train)
+    X_test_processed = pipeline.transform(X_test)
 
-    # Identificar as colunas do remainder na ordem correta
-    processed_cols = numeric_features_enem + categorical_features_enem
-    remainder_cols = [col for col in enem_df.columns if col not in processed_cols]
+    print("Pré-processamento concluído.")
+    
+    return X_train_processed, X_test_processed, y_train, y_test, pipeline
 
-    # Construir a lista final de nomes de colunas na ordem correta
-    all_feature_names = numeric_features_enem + ohe_feature_names + remainder_cols
-
-    # Criar o DataFrame final
-    enem_processed_df = pd.DataFrame(enem_processed, columns=all_feature_names)
-
-    print("\nPré-visualização do DataFrame do ENEM processado e normalizado:")
-    print(enem_processed_df.head())
-    print(f"\nFormato do DataFrame processado: {enem_processed_df.shape}")
-    print("\n--- Fim do Pré-processamento (ENEM) ---")
-
-    return enem_processed_df
-
-
-if __name__ == "__main__":
-    _, _, enem_df_main = load_data()
-    if enem_df_main is not None:
-        # A função agora recebe apenas o dataframe do ENEM
-        processed_enem_data = preprocess_data(enem_df_main)
+def save_preprocessor(pipeline, path):
+    """Salva o pipeline de pré-processamento."""
+    print(f"Salvando o pipeline de pré-processamento em {path}")
+    joblib.dump(pipeline, path)

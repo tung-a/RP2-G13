@@ -1,32 +1,83 @@
+import dask.dataframe as dd
 import pandas as pd
-import numpy as np
+import os
+import gc
 
-def integrate_data(cursos_df, ies_df):
+def load_and_integrate_data(data_path):
     """
-    Integra os dataframes de cursos e IES, preservando as colunas
-    necessárias para a análise e criando a variável-alvo.
+    Carrega e integra os dados usando Dask, aplicando uma amostragem agressiva
+    no maior dataset ANTES do merge para garantir que o processo caiba na memória.
     """
-    print("--- Iniciando Integração dos Dados ---")
+    # Definir colunas e tipos de dados
+    aluno_cols = [
+        'nu_ano_censo', 'nu_ano_ingresso', 'tp_situacao', 'co_ies', 'co_curso',
+        'tp_cor_raca', 'tp_sexo', 'faixa_etaria', 'tp_escola_conclusao_ens_medio',
+        'in_apoio_social', 'in_financiamento_estudantil'
+    ]
+    curso_cols = [
+        'CO_IES', 'CO_CURSO', 'TP_MODALIDADE_ENSINO', 'NU_CARGA_HORARIA', 'TP_GRAU_ACADEMICO'
+    ]
+    ies_cols = [
+        'co_ies', 'tp_categoria_administrativa', 'no_regiao_ies'
+    ]
+    dtype_map = {'co_ies': 'float64', 'co_curso': 'float64'}
 
-    # Garante que a coluna necessária para a análise ('TP_CATEGORIA_ADMINISTRATIVA')
-    # que vem do dataframe de IES, seja mantida após a junção.
-    cursos_ies_df = pd.merge(cursos_df, ies_df, on='CO_IES', how='left')
+    # Carregar dados com Dask
+    print("--- Carregando arquivos CSV com Dask... ---")
+    alunos_df = dd.read_csv(
+        os.path.join(data_path, 'ces', 'SoU_censo_alunos', 'SoU_censo_alunos_*', '*.csv'),
+        sep=';', encoding='latin1', usecols=aluno_cols, dtype=dtype_map, assume_missing=True
+    )
 
-    # Checagem de segurança para garantir que a coluna está presente
-    if 'TP_CATEGORIA_ADMINISTRATIVA' not in cursos_ies_df.columns:
-        raise ValueError("ERRO CRÍTICO: A coluna 'TP_CATEGORIA_ADMINISTRATIVA' não foi encontrada após o merge.")
+    # Carregar dados de cursos e IES
+    cursos_path = os.path.join(data_path, 'ces', 'SoU_censo_cursos', 'SoU_censo_curso.csv')
+    ies_path = os.path.join(data_path, 'ces', 'SoU_censo_IES', 'SoU_censo_IES.csv')
+    cursos_df = pd.read_csv(cursos_path, sep=';', encoding='latin1', usecols=curso_cols)
+    ies_df = pd.read_csv(ies_path, sep=';', encoding='latin1', usecols=ies_cols)
 
-    # Engenharia da Variável-Alvo (Target)
-    matriculados = cursos_ies_df['QT_MAT'].replace(0, np.nan)
-    desvinculados = cursos_ies_df['QT_SIT_DESVINCULADO']
-    
-    cursos_ies_df['TAXA_EVASAO'] = (desvinculados / matriculados).fillna(0)
-    
-    mediana_evasao = cursos_ies_df['TAXA_EVASAO'].median()
-    cursos_ies_df['ALTA_EVASAO'] = (cursos_ies_df['TAXA_EVASAO'] > mediana_evasao).astype(int)
-    print(f"Variável-alvo 'ALTA_EVASAO' criada. Mediana da taxa de evasão: {mediana_evasao:.2f}")
+    # Padronizar e harmonizar tipos de dados
+    cursos_df.columns = [col.lower() for col in cursos_df.columns]
+    print("--- Harmonizando tipos de dados das chaves de junção... ---")
+    for df in [cursos_df, ies_df]:
+        if 'co_ies' in df.columns:
+            df['co_ies'] = pd.to_numeric(df['co_ies'], errors='coerce').astype('float64')
+    if 'co_curso' in cursos_df.columns:
+        cursos_df['co_curso'] = pd.to_numeric(cursos_df['co_curso'], errors='coerce').astype('float64')
 
-    print(f"Integração concluída. Formato do DataFrame final: {cursos_ies_df.shape}")
-    print("--- Fim da Integração ---")
-    
-    return cursos_ies_df
+    # Merge das tabelas pequenas
+    cursos_ies_df = pd.merge(cursos_df, ies_df, on='co_ies', how='inner').dropna()
+
+    # Feature Engineering
+    alunos_df['tempo_permanencia'] = alunos_df['nu_ano_censo'] - alunos_df['nu_ano_ingresso']
+    alunos_df = alunos_df[alunos_df['tp_situacao'] == 2]
+    alunos_df = alunos_df[(alunos_df['tempo_permanencia'] > 0) & (alunos_df['tempo_permanencia'] < 20)]
+
+    # --- CORREÇÃO FINAL: AMOSTRAGEM AGRESSIVA ANTES DO MERGE ---
+    # Reduzimos o maior dataframe para 2% do seu tamanho original.
+    print("--- O dataset de alunos é muito grande. Extraindo uma amostra de 2% ANTES do merge... ---")
+    alunos_df = alunos_df.sample(frac=0.02, random_state=42)
+
+    # Merge final com Dask
+    print("--- Iniciando merge final com Dask (em dados drasticamente reduzidos)... ---")
+    final_df_dask = dd.merge(alunos_df, cursos_ies_df, on=['co_curso', 'co_ies'], how='inner')
+
+    # Limpeza
+    final_df_dask = final_df_dask.drop(columns=['nu_ano_censo', 'nu_ano_ingresso', 'tp_situacao', 'co_ies', 'co_curso'])
+
+    print("Grafo de tarefas Dask construído. Iniciando computação final...")
+    final_df_pandas = final_df_dask.compute()
+
+    del final_df_dask
+    gc.collect()
+
+    print("Dados integrados e limpos com sucesso.")
+    print(f"Total de registros para modelagem: {len(final_df_pandas)}")
+
+    return final_df_pandas
+
+def split_by_institution_type(df):
+    if 'tp_categoria_administrativa' not in df.columns:
+        return pd.DataFrame(), pd.DataFrame()
+    df_publica = df[df['tp_categoria_administrativa'].isin([1, 2, 3])].copy()
+    df_privada = df[df['tp_categoria_administrativa'].isin([4, 5, 6, 7, 8])].copy()
+    return df_publica, df_privada

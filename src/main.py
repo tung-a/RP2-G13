@@ -16,7 +16,7 @@ def main():
     os.makedirs(MODELS_PATH, exist_ok=True)
     os.makedirs(REPORTS_PATH, exist_ok=True)
 
-    # 1. Carga e Integração de Dados (AGORA USANDO DASK POR BAIXO DOS PANOS)
+    # 1. Carga e Integração de Dados
     print("--- Iniciando Etapa 1: Carga e Integração de Dados ---")
     integrated_df = load_and_integrate_data(DATA_PATH)
     
@@ -26,7 +26,6 @@ def main():
 
     df_publica, df_privada = split_by_institution_type(integrated_df)
 
-    # Dicionário para armazenar as métricas de cada modelo
     metrics = {}
     
     datasets = {
@@ -52,8 +51,8 @@ def main():
         # 4. Avaliação
         metrics[name] = evaluate_model(model, X_test, y_test)
         
-        # 5. Análise
-        analyze_feature_importance(model, preprocessor_pipeline, REPORTS_PATH)
+        # 5. Análise - ALTERAÇÃO APLICADA AQUI
+        analyze_feature_importance(model, preprocessor_pipeline, REPORTS_PATH, name)
 
     # 6. Salvar Relatório Final de Métricas
     if 'publica' in metrics and 'privada' in metrics:

@@ -2,6 +2,8 @@ import joblib
 import pandas as pd
 import os
 import itertools
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def predict_permanence(student_data, institution_type):
     """
@@ -83,7 +85,6 @@ def run_and_save_all_scenarios():
 
     results_df = pd.DataFrame(results)
     
-    # Guardar os resultados num CSV
     REPORTS_PATH = 'reports'
     os.makedirs(REPORTS_PATH, exist_ok=True)
     output_path = os.path.join(REPORTS_PATH, 'prediction_scenarios.csv')
@@ -95,7 +96,7 @@ def run_and_save_all_scenarios():
 
 def analyze_predictions(csv_path):
     """
-    Lê o ficheiro CSV com as previsões e realiza análises para extrair insights.
+    Lê o ficheiro CSV com as previsões, realiza análises e GERA GRÁFICOS para extrair insights.
     """
     if not os.path.exists(csv_path):
         print(f"Ficheiro de cenários não encontrado em {csv_path}")
@@ -103,40 +104,60 @@ def analyze_predictions(csv_path):
 
     print("\n\n--- INICIANDO ANÁLISE DOS CENÁRIOS GERADOS ---")
     df = pd.read_csv(csv_path)
+    
+    FIGURES_PATH = 'reports/figures'
+    os.makedirs(FIGURES_PATH, exist_ok=True)
 
     for inst_type in ['PUBLICA', 'PRIVADA']:
         print(f"\n--- ANÁLISE PARA INSTITUIÇÕES DO TIPO: {inst_type} ---")
         subset_df = df[df['Tipo IES'] == inst_type].copy()
         
-        # 1. Análise de Impacto por Característica
+        # 1. Análise de Impacto por Característica (Textual e Gráfica)
         print("\n[Análise 1: Impacto Médio de Cada Característica na Previsão]")
         features_to_analyze = ["Modalidade", "Escola Média", "Financiamento", "Apoio Social", "Cor/Raça"]
+        
         for feature in features_to_analyze:
-            # Agrupa por característica e calcula a média da previsão
             impact_analysis = subset_df.groupby(feature)['Previsão (anos)'].mean().sort_values(ascending=False)
+            
+            # Análise textual
             print(f"\nImpacto da característica '{feature}':")
             print(impact_analysis.to_string())
-            # Calcula a diferença entre o maior e o menor impacto
             if len(impact_analysis) > 1:
                 diff = impact_analysis.max() - impact_analysis.min()
                 print(f"-> Diferença máxima de impacto: {diff:.2f} anos")
 
+            # Geração de Gráfico
+            plt.figure(figsize=(10, 6))
+            sns.barplot(x=impact_analysis.index, y=impact_analysis.values, palette='viridis')
+            plt.title(f'Impacto Médio da Característica "{feature}"\nem IES do tipo {inst_type}')
+            plt.ylabel('Previsão Média de Permanência (anos)')
+            plt.xlabel(feature)
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+            
+            # Guardar o gráfico
+            plot_path = os.path.join(FIGURES_PATH, f'impacto_{feature.lower().replace("/", "")}_{inst_type.lower()}.png')
+            plt.savefig(plot_path)
+            plt.close()
+            print(f"-> Gráfico guardado em: {plot_path}")
+
         # 2. Análise dos Cenários Extremos
         print("\n\n[Análise 2: Perfis com Maiores e Menores Previsões]")
-        max_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmax()]
-        min_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmin()]
-        
-        print("\nCenário com MAIOR tempo de permanência previsto:")
-        print(max_pred.to_string())
-        
-        print("\nCenário com MENOR tempo de permanência previsto:")
-        print(min_pred.to_string())
+        if not subset_df.empty:
+            max_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmax()]
+            min_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmin()]
+            
+            print("\nCenário com MAIOR tempo de permanência previsto:")
+            print(max_pred.to_string())
+            
+            print("\nCenário com MENOR tempo de permanência previsto:")
+            print(min_pred.to_string())
 
 
 if __name__ == '__main__':
     # Passo 1: Gerar e guardar todos os cenários num ficheiro CSV
     scenarios_csv_path = run_and_save_all_scenarios()
     
-    # Passo 2: Analisar os resultados guardados no ficheiro CSV
+    # Passo 2: Analisar os resultados guardados e gerar gráficos
     if scenarios_csv_path:
         analyze_predictions(scenarios_csv_path)

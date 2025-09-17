@@ -2,47 +2,56 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-import numpy as np
 
-def analyze_feature_importance(model, preprocessor_pipeline, report_path):
+def analyze_feature_importance(model, preprocessor_pipeline, report_path, model_name):
     """
-    Analisa e plota a importância das features do modelo.
+    Analisa e plota a importância das features do modelo de forma robusta.
     """
     try:
-        # Extrair nomes das features do pipeline de forma robusta
         preprocessor = preprocessor_pipeline.named_steps['preprocessor']
+        all_features = []
+
+        # Itera sobre os transformadores que foram efetivamente usados no pipeline
+        for name, transformer, columns in preprocessor.transformers_:
+            if name == 'remainder' or not columns:
+                continue
+            
+            if name == 'num':
+                # As features numéricas mantêm os seus nomes originais
+                all_features.extend(columns)
+            elif name == 'cat':
+                # Para o OneHotEncoder, obtemos os nomes das novas colunas geradas
+                encoded_cat_names = transformer.get_feature_names_out(columns)
+                all_features.extend(encoded_cat_names)
         
-        # Nomes das features numéricas
-        num_features = preprocessor.named_transformers_['num'].feature_names_in_
-        
-        # Nomes das features categóricas
-        cat_features_raw = preprocessor.named_transformers_['cat'].feature_names_in_
-        cat_features_encoded = preprocessor.named_transformers_['cat'].get_feature_names_out(cat_features_raw)
-        
-        all_features = np.concatenate([num_features, cat_features_encoded])
+        if not all_features:
+            print("Não foram encontradas features para analisar a importância.")
+            return
+
     except Exception as e:
         print(f"Não foi possível extrair nomes das features. Erro: {e}. Pulando gráfico de importância.")
         return
 
     importances = model.feature_importances_
     feature_importance_df = pd.DataFrame({'feature': all_features, 'importance': importances})
-    feature_importance_df = feature_importance_df.sort_values(by='importance', ascending=False).head(20) # Aumentado para Top 20
+    feature_importance_df = feature_importance_df.sort_values(by='importance', ascending=False).head(20)
 
     plt.figure(figsize=(12, 10))
     sns.barplot(x='importance', y='feature', data=feature_importance_df, palette='viridis')
-    plt.title('Top 20 Features Mais Importantes para Prever Tempo de Permanência')
+    plt.title(f'Top 20 Features Mais Importantes ({model_name.upper()})')
     plt.xlabel('Importância')
     plt.ylabel('Feature')
     plt.tight_layout()
     
-    output_path = os.path.join(report_path, f'feature_importance_{report_path.split(os.sep)[-1]}.png') # Nome dinâmico para evitar sobrescrever
+    # Gerar um nome de ficheiro único para cada gráfico
+    output_path = os.path.join(report_path, f'feature_importance_{model_name}.png')
     plt.savefig(output_path)
     print(f"Gráfico de importância das features salvo em: {output_path}")
     plt.close()
 
 def save_metrics_report(metrics_publica, metrics_privada, report_path):
     """
-    Salva as métricas de avaliação dos modelos em um arquivo CSV.
+    Salva as métricas de avaliação dos modelos num ficheiro CSV.
     """
     metrics_df = pd.DataFrame({
         'instituicao': ['Pública', 'Privada'],

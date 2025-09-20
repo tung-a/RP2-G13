@@ -1,6 +1,6 @@
 # arquivos muito grandes
 /models
-/databases
+/data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

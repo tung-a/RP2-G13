@@ -53,9 +53,9 @@ def load_and_integrate_data(data_path):
     alunos_df = alunos_df[(alunos_df['tempo_permanencia'] > 0) & (alunos_df['tempo_permanencia'] < 20)]
 
     # --- CORREÇÃO FINAL: AMOSTRAGEM AGRESSIVA ANTES DO MERGE ---
-    # Reduzimos o maior dataframe para 2% do seu tamanho original.
-    print("--- O dataset de alunos é muito grande. Extraindo uma amostra de 2% ANTES do merge... ---")
-    alunos_df = alunos_df.sample(frac=0.02, random_state=42)
+    # Reduzimos o maior dataframe para 0,5% do seu tamanho original.
+    print("--- O dataset de alunos é muito grande. Extraindo uma amostra de 0,5% ANTES do merge... ---")
+    alunos_df = alunos_df.sample(frac=0.005, random_state=42)
 
     # Merge final com Dask
     print("--- Iniciando merge final com Dask (em dados drasticamente reduzidos)... ---")

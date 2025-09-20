@@ -1,3 +1,385 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:eac4c331da15539044f43fa2dc76adecbee79f871b9b9003e95ea17d11f9e923
-size 21944
+Tipo IES,Cor/Raça,Sexo,Escola Média,Modalidade,Financiamento,Apoio Social,Previsão (anos)
+PUBLICA,Não declarado,Masculino,Privada,Presencial,Não,Não,1.68
+PRIVADA,Não declarado,Masculino,Privada,Presencial,Não,Não,3.21
+PUBLICA,Não declarado,Masculino,Privada,Presencial,Não,Sim,1.0
+PRIVADA,Não declarado,Masculino,Privada,Presencial,Não,Sim,3.21
+PUBLICA,Não declarado,Masculino,Privada,Presencial,Sim,Não,1.68
+PRIVADA,Não declarado,Masculino,Privada,Presencial,Sim,Não,2.5
+PUBLICA,Não declarado,Masculino,Privada,Presencial,Sim,Sim,1.0
+PRIVADA,Não declarado,Masculino,Privada,Presencial,Sim,Sim,2.51
+PUBLICA,Não declarado,Masculino,Privada,EAD,Não,Não,1.68
+PRIVADA,Não declarado,Masculino,Privada,EAD,Não,Não,1.56
+PUBLICA,Não declarado,Masculino,Privada,EAD,Não,Sim,1.0
+PRIVADA,Não declarado,Masculino,Privada,EAD,Não,Sim,1.46
+PUBLICA,Não declarado,Masculino,Privada,EAD,Sim,Não,1.68
+PRIVADA,Não declarado,Masculino,Privada,EAD,Sim,Não,2.88
+PUBLICA,Não declarado,Masculino,Privada,EAD,Sim,Sim,1.0
+PRIVADA,Não declarado,Masculino,Privada,EAD,Sim,Sim,1.89
+PUBLICA,Não declarado,Masculino,Pública,Presencial,Não,Não,1.37
+PRIVADA,Não declarado,Masculino,Pública,Presencial,Não,Não,2.72
+PUBLICA,Não declarado,Masculino,Pública,Presencial,Não,Sim,4.44
+PRIVADA,Não declarado,Masculino,Pública,Presencial,Não,Sim,3.0
+PUBLICA,Não declarado,Masculino,Pública,Presencial,Sim,Não,1.46
+PRIVADA,Não declarado,Masculino,Pública,Presencial,Sim,Não,2.93
+PUBLICA,Não declarado,Masculino,Pública,Presencial,Sim,Sim,4.39
+PRIVADA,Não declarado,Masculino,Pública,Presencial,Sim,Sim,2.62
+PUBLICA,Não declarado,Masculino,Pública,EAD,Não,Não,1.74
+PRIVADA,Não declarado,Masculino,Pública,EAD,Não,Não,1.26
+PUBLICA,Não declarado,Masculino,Pública,EAD,Não,Sim,3.64
+PRIVADA,Não declarado,Masculino,Pública,EAD,Não,Sim,1.43
+PUBLICA,Não declarado,Masculino,Pública,EAD,Sim,Não,1.74
+PRIVADA,Não declarado,Masculino,Pública,EAD,Sim,Não,1.84
+PUBLICA,Não declarado,Masculino,Pública,EAD,Sim,Sim,3.64
+PRIVADA,Não declarado,Masculino,Pública,EAD,Sim,Sim,1.87
+PUBLICA,Não declarado,Feminino,Privada,Presencial,Não,Não,4.28
+PRIVADA,Não declarado,Feminino,Privada,Presencial,Não,Não,2.82
+PUBLICA,Não declarado,Feminino,Privada,Presencial,Não,Sim,2.62
+PRIVADA,Não declarado,Feminino,Privada,Presencial,Não,Sim,1.02
+PUBLICA,Não declarado,Feminino,Privada,Presencial,Sim,Não,4.28
+PRIVADA,Não declarado,Feminino,Privada,Presencial,Sim,Não,2.37
+PUBLICA,Não declarado,Feminino,Privada,Presencial,Sim,Sim,2.62
+PRIVADA,Não declarado,Feminino,Privada,Presencial,Sim,Sim,3.0
+PUBLICA,Não declarado,Feminino,Privada,EAD,Não,Não,4.28
+PRIVADA,Não declarado,Feminino,Privada,EAD,Não,Não,1.11
+PUBLICA,Não declarado,Feminino,Privada,EAD,Não,Sim,2.62
+PRIVADA,Não declarado,Feminino,Privada,EAD,Não,Sim,1.13
+PUBLICA,Não declarado,Feminino,Privada,EAD,Sim,Não,4.28
+PRIVADA,Não declarado,Feminino,Privada,EAD,Sim,Não,1.29
+PUBLICA,Não declarado,Feminino,Privada,EAD,Sim,Sim,2.62
+PRIVADA,Não declarado,Feminino,Privada,EAD,Sim,Sim,1.16
+PUBLICA,Não declarado,Feminino,Pública,Presencial,Não,Não,2.44
+PRIVADA,Não declarado,Feminino,Pública,Presencial,Não,Não,3.22
+PUBLICA,Não declarado,Feminino,Pública,Presencial,Não,Sim,2.59
+PRIVADA,Não declarado,Feminino,Pública,Presencial,Não,Sim,2.27
+PUBLICA,Não declarado,Feminino,Pública,Presencial,Sim,Não,2.17
+PRIVADA,Não declarado,Feminino,Pública,Presencial,Sim,Não,2.7
+PUBLICA,Não declarado,Feminino,Pública,Presencial,Sim,Sim,2.33
+PRIVADA,Não declarado,Feminino,Pública,Presencial,Sim,Sim,1.0
+PUBLICA,Não declarado,Feminino,Pública,EAD,Não,Não,2.08
+PRIVADA,Não declarado,Feminino,Pública,EAD,Não,Não,1.96
+PUBLICA,Não declarado,Feminino,Pública,EAD,Não,Sim,2.36
+PRIVADA,Não declarado,Feminino,Pública,EAD,Não,Sim,1.95
+PUBLICA,Não declarado,Feminino,Pública,EAD,Sim,Não,1.88
+PRIVADA,Não declarado,Feminino,Pública,EAD,Sim,Não,1.97
+PUBLICA,Não declarado,Feminino,Pública,EAD,Sim,Sim,2.14
+PRIVADA,Não declarado,Feminino,Pública,EAD,Sim,Sim,1.81
+PUBLICA,Branca,Masculino,Privada,Presencial,Não,Não,1.76
+PRIVADA,Branca,Masculino,Privada,Presencial,Não,Não,2.73
+PUBLICA,Branca,Masculino,Privada,Presencial,Não,Sim,1.0
+PRIVADA,Branca,Masculino,Privada,Presencial,Não,Sim,1.93
+PUBLICA,Branca,Masculino,Privada,Presencial,Sim,Não,1.76
+PRIVADA,Branca,Masculino,Privada,Presencial,Sim,Não,2.7
+PUBLICA,Branca,Masculino,Privada,Presencial,Sim,Sim,1.0
+PRIVADA,Branca,Masculino,Privada,Presencial,Sim,Sim,4.29
+PUBLICA,Branca,Masculino,Privada,EAD,Não,Não,1.76
+PRIVADA,Branca,Masculino,Privada,EAD,Não,Não,3.0
+PUBLICA,Branca,Masculino,Privada,EAD,Não,Sim,1.0
+PRIVADA,Branca,Masculino,Privada,EAD,Não,Sim,1.22
+PUBLICA,Branca,Masculino,Privada,EAD,Sim,Não,1.76
+PRIVADA,Branca,Masculino,Privada,EAD,Sim,Não,3.0
+PUBLICA,Branca,Masculino,Privada,EAD,Sim,Sim,1.0
+PRIVADA,Branca,Masculino,Privada,EAD,Sim,Sim,2.98
+PUBLICA,Branca,Masculino,Pública,Presencial,Não,Não,1.55
+PRIVADA,Branca,Masculino,Pública,Presencial,Não,Não,3.03
+PUBLICA,Branca,Masculino,Pública,Presencial,Não,Sim,1.0
+PRIVADA,Branca,Masculino,Pública,Presencial,Não,Sim,3.03
+PUBLICA,Branca,Masculino,Pública,Presencial,Sim,Não,1.44
+PRIVADA,Branca,Masculino,Pública,Presencial,Sim,Não,2.87
+PUBLICA,Branca,Masculino,Pública,Presencial,Sim,Sim,1.03
+PRIVADA,Branca,Masculino,Pública,Presencial,Sim,Sim,2.46
+PUBLICA,Branca,Masculino,Pública,EAD,Não,Não,1.77
+PRIVADA,Branca,Masculino,Pública,EAD,Não,Não,1.89
+PUBLICA,Branca,Masculino,Pública,EAD,Não,Sim,1.45
+PRIVADA,Branca,Masculino,Pública,EAD,Não,Sim,1.0
+PUBLICA,Branca,Masculino,Pública,EAD,Sim,Não,1.77
+PRIVADA,Branca,Masculino,Pública,EAD,Sim,Não,1.26
+PUBLICA,Branca,Masculino,Pública,EAD,Sim,Sim,1.45
+PRIVADA,Branca,Masculino,Pública,EAD,Sim,Sim,1.24
+PUBLICA,Branca,Feminino,Privada,Presencial,Não,Não,3.0
+PRIVADA,Branca,Feminino,Privada,Presencial,Não,Não,2.47
+PUBLICA,Branca,Feminino,Privada,Presencial,Não,Sim,1.88
+PRIVADA,Branca,Feminino,Privada,Presencial,Não,Sim,3.22
+PUBLICA,Branca,Feminino,Privada,Presencial,Sim,Não,3.0
+PRIVADA,Branca,Feminino,Privada,Presencial,Sim,Não,2.76
+PUBLICA,Branca,Feminino,Privada,Presencial,Sim,Sim,1.88
+PRIVADA,Branca,Feminino,Privada,Presencial,Sim,Sim,2.78
+PUBLICA,Branca,Feminino,Privada,EAD,Não,Não,3.0
+PRIVADA,Branca,Feminino,Privada,EAD,Não,Não,1.0
+PUBLICA,Branca,Feminino,Privada,EAD,Não,Sim,1.88
+PRIVADA,Branca,Feminino,Privada,EAD,Não,Sim,1.05
+PUBLICA,Branca,Feminino,Privada,EAD,Sim,Não,3.0
+PRIVADA,Branca,Feminino,Privada,EAD,Sim,Não,1.0
+PUBLICA,Branca,Feminino,Privada,EAD,Sim,Sim,1.88
+PRIVADA,Branca,Feminino,Privada,EAD,Sim,Sim,2.0
+PUBLICA,Branca,Feminino,Pública,Presencial,Não,Não,3.02
+PRIVADA,Branca,Feminino,Pública,Presencial,Não,Não,3.2
+PUBLICA,Branca,Feminino,Pública,Presencial,Não,Sim,3.63
+PRIVADA,Branca,Feminino,Pública,Presencial,Não,Sim,2.28
+PUBLICA,Branca,Feminino,Pública,Presencial,Sim,Não,2.53
+PRIVADA,Branca,Feminino,Pública,Presencial,Sim,Não,3.14
+PUBLICA,Branca,Feminino,Pública,Presencial,Sim,Sim,3.07
+PRIVADA,Branca,Feminino,Pública,Presencial,Sim,Sim,3.43
+PUBLICA,Branca,Feminino,Pública,EAD,Não,Não,2.38
+PRIVADA,Branca,Feminino,Pública,EAD,Não,Não,1.22
+PUBLICA,Branca,Feminino,Pública,EAD,Não,Sim,2.88
+PRIVADA,Branca,Feminino,Pública,EAD,Não,Sim,1.0
+PUBLICA,Branca,Feminino,Pública,EAD,Sim,Não,2.2
+PRIVADA,Branca,Feminino,Pública,EAD,Sim,Não,1.91
+PUBLICA,Branca,Feminino,Pública,EAD,Sim,Sim,2.66
+PRIVADA,Branca,Feminino,Pública,EAD,Sim,Sim,2.39
+PUBLICA,Preta,Masculino,Privada,Presencial,Não,Não,1.48
+PRIVADA,Preta,Masculino,Privada,Presencial,Não,Não,2.03
+PUBLICA,Preta,Masculino,Privada,Presencial,Não,Sim,1.06
+PRIVADA,Preta,Masculino,Privada,Presencial,Não,Sim,2.03
+PUBLICA,Preta,Masculino,Privada,Presencial,Sim,Não,1.48
+PRIVADA,Preta,Masculino,Privada,Presencial,Sim,Não,2.16
+PUBLICA,Preta,Masculino,Privada,Presencial,Sim,Sim,1.06
+PRIVADA,Preta,Masculino,Privada,Presencial,Sim,Sim,1.23
+PUBLICA,Preta,Masculino,Privada,EAD,Não,Não,1.48
+PRIVADA,Preta,Masculino,Privada,EAD,Não,Não,2.73
+PUBLICA,Preta,Masculino,Privada,EAD,Não,Sim,1.06
+PRIVADA,Preta,Masculino,Privada,EAD,Não,Sim,1.2
+PUBLICA,Preta,Masculino,Privada,EAD,Sim,Não,1.48
+PRIVADA,Preta,Masculino,Privada,EAD,Sim,Não,1.46
+PUBLICA,Preta,Masculino,Privada,EAD,Sim,Sim,1.06
+PRIVADA,Preta,Masculino,Privada,EAD,Sim,Sim,1.44
+PUBLICA,Preta,Masculino,Pública,Presencial,Não,Não,1.75
+PRIVADA,Preta,Masculino,Pública,Presencial,Não,Não,1.49
+PUBLICA,Preta,Masculino,Pública,Presencial,Não,Sim,1.4
+PRIVADA,Preta,Masculino,Pública,Presencial,Não,Sim,2.19
+PUBLICA,Preta,Masculino,Pública,Presencial,Sim,Não,1.63
+PRIVADA,Preta,Masculino,Pública,Presencial,Sim,Não,1.16
+PUBLICA,Preta,Masculino,Pública,Presencial,Sim,Sim,1.43
+PRIVADA,Preta,Masculino,Pública,Presencial,Sim,Sim,4.2
+PUBLICA,Preta,Masculino,Pública,EAD,Não,Não,1.75
+PRIVADA,Preta,Masculino,Pública,EAD,Não,Não,1.86
+PUBLICA,Preta,Masculino,Pública,EAD,Não,Sim,1.61
+PRIVADA,Preta,Masculino,Pública,EAD,Não,Sim,1.22
+PUBLICA,Preta,Masculino,Pública,EAD,Sim,Não,1.75
+PRIVADA,Preta,Masculino,Pública,EAD,Sim,Não,2.92
+PUBLICA,Preta,Masculino,Pública,EAD,Sim,Sim,1.61
+PRIVADA,Preta,Masculino,Pública,EAD,Sim,Sim,2.58
+PUBLICA,Preta,Feminino,Privada,Presencial,Não,Não,2.62
+PRIVADA,Preta,Feminino,Privada,Presencial,Não,Não,2.9
+PUBLICA,Preta,Feminino,Privada,Presencial,Não,Sim,1.78
+PRIVADA,Preta,Feminino,Privada,Presencial,Não,Sim,1.74
+PUBLICA,Preta,Feminino,Privada,Presencial,Sim,Não,2.62
+PRIVADA,Preta,Feminino,Privada,Presencial,Sim,Não,2.0
+PUBLICA,Preta,Feminino,Privada,Presencial,Sim,Sim,1.78
+PRIVADA,Preta,Feminino,Privada,Presencial,Sim,Sim,2.19
+PUBLICA,Preta,Feminino,Privada,EAD,Não,Não,2.62
+PRIVADA,Preta,Feminino,Privada,EAD,Não,Não,1.06
+PUBLICA,Preta,Feminino,Privada,EAD,Não,Sim,1.78
+PRIVADA,Preta,Feminino,Privada,EAD,Não,Sim,1.05
+PUBLICA,Preta,Feminino,Privada,EAD,Sim,Não,2.62
+PRIVADA,Preta,Feminino,Privada,EAD,Sim,Não,2.0
+PUBLICA,Preta,Feminino,Privada,EAD,Sim,Sim,1.78
+PRIVADA,Preta,Feminino,Privada,EAD,Sim,Sim,2.0
+PUBLICA,Preta,Feminino,Pública,Presencial,Não,Não,3.09
+PRIVADA,Preta,Feminino,Pública,Presencial,Não,Não,2.88
+PUBLICA,Preta,Feminino,Pública,Presencial,Não,Sim,3.38
+PRIVADA,Preta,Feminino,Pública,Presencial,Não,Sim,2.29
+PUBLICA,Preta,Feminino,Pública,Presencial,Sim,Não,2.6
+PRIVADA,Preta,Feminino,Pública,Presencial,Sim,Não,3.54
+PUBLICA,Preta,Feminino,Pública,Presencial,Sim,Sim,2.88
+PRIVADA,Preta,Feminino,Pública,Presencial,Sim,Sim,3.0
+PUBLICA,Preta,Feminino,Pública,EAD,Não,Não,2.22
+PRIVADA,Preta,Feminino,Pública,EAD,Não,Não,1.56
+PUBLICA,Preta,Feminino,Pública,EAD,Não,Sim,2.46
+PRIVADA,Preta,Feminino,Pública,EAD,Não,Sim,1.12
+PUBLICA,Preta,Feminino,Pública,EAD,Sim,Não,2.08
+PRIVADA,Preta,Feminino,Pública,EAD,Sim,Não,2.45
+PUBLICA,Preta,Feminino,Pública,EAD,Sim,Sim,2.29
+PRIVADA,Preta,Feminino,Pública,EAD,Sim,Sim,2.68
+PUBLICA,Parda,Masculino,Privada,Presencial,Não,Não,1.89
+PRIVADA,Parda,Masculino,Privada,Presencial,Não,Não,2.46
+PUBLICA,Parda,Masculino,Privada,Presencial,Não,Sim,1.8
+PRIVADA,Parda,Masculino,Privada,Presencial,Não,Sim,2.46
+PUBLICA,Parda,Masculino,Privada,Presencial,Sim,Não,1.89
+PRIVADA,Parda,Masculino,Privada,Presencial,Sim,Não,2.8
+PUBLICA,Parda,Masculino,Privada,Presencial,Sim,Sim,1.8
+PRIVADA,Parda,Masculino,Privada,Presencial,Sim,Sim,2.15
+PUBLICA,Parda,Masculino,Privada,EAD,Não,Não,1.89
+PRIVADA,Parda,Masculino,Privada,EAD,Não,Não,2.0
+PUBLICA,Parda,Masculino,Privada,EAD,Não,Sim,1.8
+PRIVADA,Parda,Masculino,Privada,EAD,Não,Sim,1.83
+PUBLICA,Parda,Masculino,Privada,EAD,Sim,Não,1.89
+PRIVADA,Parda,Masculino,Privada,EAD,Sim,Não,2.0
+PUBLICA,Parda,Masculino,Privada,EAD,Sim,Sim,1.8
+PRIVADA,Parda,Masculino,Privada,EAD,Sim,Sim,2.0
+PUBLICA,Parda,Masculino,Pública,Presencial,Não,Não,2.01
+PRIVADA,Parda,Masculino,Pública,Presencial,Não,Não,3.49
+PUBLICA,Parda,Masculino,Pública,Presencial,Não,Sim,1.78
+PRIVADA,Parda,Masculino,Pública,Presencial,Não,Sim,3.25
+PUBLICA,Parda,Masculino,Pública,Presencial,Sim,Não,2.01
+PRIVADA,Parda,Masculino,Pública,Presencial,Sim,Não,2.93
+PUBLICA,Parda,Masculino,Pública,Presencial,Sim,Sim,1.78
+PRIVADA,Parda,Masculino,Pública,Presencial,Sim,Sim,4.2
+PUBLICA,Parda,Masculino,Pública,EAD,Não,Não,1.76
+PRIVADA,Parda,Masculino,Pública,EAD,Não,Não,2.33
+PUBLICA,Parda,Masculino,Pública,EAD,Não,Sim,1.66
+PRIVADA,Parda,Masculino,Pública,EAD,Não,Sim,1.9
+PUBLICA,Parda,Masculino,Pública,EAD,Sim,Não,1.76
+PRIVADA,Parda,Masculino,Pública,EAD,Sim,Não,2.15
+PUBLICA,Parda,Masculino,Pública,EAD,Sim,Sim,1.66
+PRIVADA,Parda,Masculino,Pública,EAD,Sim,Sim,1.83
+PUBLICA,Parda,Feminino,Privada,Presencial,Não,Não,1.74
+PRIVADA,Parda,Feminino,Privada,Presencial,Não,Não,2.83
+PUBLICA,Parda,Feminino,Privada,Presencial,Não,Sim,1.0
+PRIVADA,Parda,Feminino,Privada,Presencial,Não,Sim,1.74
+PUBLICA,Parda,Feminino,Privada,Presencial,Sim,Não,1.74
+PRIVADA,Parda,Feminino,Privada,Presencial,Sim,Não,2.61
+PUBLICA,Parda,Feminino,Privada,Presencial,Sim,Sim,1.0
+PRIVADA,Parda,Feminino,Privada,Presencial,Sim,Sim,2.9
+PUBLICA,Parda,Feminino,Privada,EAD,Não,Não,1.74
+PRIVADA,Parda,Feminino,Privada,EAD,Não,Não,1.56
+PUBLICA,Parda,Feminino,Privada,EAD,Não,Sim,1.0
+PRIVADA,Parda,Feminino,Privada,EAD,Não,Sim,1.0
+PUBLICA,Parda,Feminino,Privada,EAD,Sim,Não,1.74
+PRIVADA,Parda,Feminino,Privada,EAD,Sim,Não,1.45
+PUBLICA,Parda,Feminino,Privada,EAD,Sim,Sim,1.0
+PRIVADA,Parda,Feminino,Privada,EAD,Sim,Sim,1.47
+PUBLICA,Parda,Feminino,Pública,Presencial,Não,Não,2.86
+PRIVADA,Parda,Feminino,Pública,Presencial,Não,Não,2.82
+PUBLICA,Parda,Feminino,Pública,Presencial,Não,Sim,3.13
+PRIVADA,Parda,Feminino,Pública,Presencial,Não,Sim,2.94
+PUBLICA,Parda,Feminino,Pública,Presencial,Sim,Não,2.67
+PRIVADA,Parda,Feminino,Pública,Presencial,Sim,Não,3.37
+PUBLICA,Parda,Feminino,Pública,Presencial,Sim,Sim,2.86
+PRIVADA,Parda,Feminino,Pública,Presencial,Sim,Sim,3.0
+PUBLICA,Parda,Feminino,Pública,EAD,Não,Não,1.97
+PRIVADA,Parda,Feminino,Pública,EAD,Não,Não,3.0
+PUBLICA,Parda,Feminino,Pública,EAD,Não,Sim,2.3
+PRIVADA,Parda,Feminino,Pública,EAD,Não,Sim,2.51
+PUBLICA,Parda,Feminino,Pública,EAD,Sim,Não,1.86
+PRIVADA,Parda,Feminino,Pública,EAD,Sim,Não,1.72
+PUBLICA,Parda,Feminino,Pública,EAD,Sim,Sim,2.14
+PRIVADA,Parda,Feminino,Pública,EAD,Sim,Sim,1.63
+PUBLICA,Amarela,Masculino,Privada,Presencial,Não,Não,2.43
+PRIVADA,Amarela,Masculino,Privada,Presencial,Não,Não,1.31
+PUBLICA,Amarela,Masculino,Privada,Presencial,Não,Sim,2.03
+PRIVADA,Amarela,Masculino,Privada,Presencial,Não,Sim,1.31
+PUBLICA,Amarela,Masculino,Privada,Presencial,Sim,Não,2.43
+PRIVADA,Amarela,Masculino,Privada,Presencial,Sim,Não,1.75
+PUBLICA,Amarela,Masculino,Privada,Presencial,Sim,Sim,2.03
+PRIVADA,Amarela,Masculino,Privada,Presencial,Sim,Sim,2.0
+PUBLICA,Amarela,Masculino,Privada,EAD,Não,Não,2.43
+PRIVADA,Amarela,Masculino,Privada,EAD,Não,Não,3.81
+PUBLICA,Amarela,Masculino,Privada,EAD,Não,Sim,2.03
+PRIVADA,Amarela,Masculino,Privada,EAD,Não,Sim,2.43
+PUBLICA,Amarela,Masculino,Privada,EAD,Sim,Não,2.43
+PRIVADA,Amarela,Masculino,Privada,EAD,Sim,Não,3.0
+PUBLICA,Amarela,Masculino,Privada,EAD,Sim,Sim,2.03
+PRIVADA,Amarela,Masculino,Privada,EAD,Sim,Sim,3.0
+PUBLICA,Amarela,Masculino,Pública,Presencial,Não,Não,2.46
+PRIVADA,Amarela,Masculino,Pública,Presencial,Não,Não,3.15
+PUBLICA,Amarela,Masculino,Pública,Presencial,Não,Sim,2.4
+PRIVADA,Amarela,Masculino,Pública,Presencial,Não,Sim,3.27
+PUBLICA,Amarela,Masculino,Pública,Presencial,Sim,Não,2.46
+PRIVADA,Amarela,Masculino,Pública,Presencial,Sim,Não,3.0
+PUBLICA,Amarela,Masculino,Pública,Presencial,Sim,Sim,2.4
+PRIVADA,Amarela,Masculino,Pública,Presencial,Sim,Sim,4.2
+PUBLICA,Amarela,Masculino,Pública,EAD,Não,Não,1.8
+PRIVADA,Amarela,Masculino,Pública,EAD,Não,Não,2.65
+PUBLICA,Amarela,Masculino,Pública,EAD,Não,Sim,1.69
+PRIVADA,Amarela,Masculino,Pública,EAD,Não,Sim,1.9
+PUBLICA,Amarela,Masculino,Pública,EAD,Sim,Não,1.8
+PRIVADA,Amarela,Masculino,Pública,EAD,Sim,Não,2.15
+PUBLICA,Amarela,Masculino,Pública,EAD,Sim,Sim,1.69
+PRIVADA,Amarela,Masculino,Pública,EAD,Sim,Sim,1.83
+PUBLICA,Amarela,Feminino,Privada,Presencial,Não,Não,4.0
+PRIVADA,Amarela,Feminino,Privada,Presencial,Não,Não,2.14
+PUBLICA,Amarela,Feminino,Privada,Presencial,Não,Sim,3.45
+PRIVADA,Amarela,Feminino,Privada,Presencial,Não,Sim,1.74
+PUBLICA,Amarela,Feminino,Privada,Presencial,Sim,Não,4.0
+PRIVADA,Amarela,Feminino,Privada,Presencial,Sim,Não,1.0
+PUBLICA,Amarela,Feminino,Privada,Presencial,Sim,Sim,3.45
+PRIVADA,Amarela,Feminino,Privada,Presencial,Sim,Sim,2.42
+PUBLICA,Amarela,Feminino,Privada,EAD,Não,Não,4.0
+PRIVADA,Amarela,Feminino,Privada,EAD,Não,Não,3.29
+PUBLICA,Amarela,Feminino,Privada,EAD,Não,Sim,3.45
+PRIVADA,Amarela,Feminino,Privada,EAD,Não,Sim,1.6
+PUBLICA,Amarela,Feminino,Privada,EAD,Sim,Não,4.0
+PRIVADA,Amarela,Feminino,Privada,EAD,Sim,Não,1.0
+PUBLICA,Amarela,Feminino,Privada,EAD,Sim,Sim,3.45
+PRIVADA,Amarela,Feminino,Privada,EAD,Sim,Sim,1.0
+PUBLICA,Amarela,Feminino,Pública,Presencial,Não,Não,3.16
+PRIVADA,Amarela,Feminino,Pública,Presencial,Não,Não,1.89
+PUBLICA,Amarela,Feminino,Pública,Presencial,Não,Sim,3.25
+PRIVADA,Amarela,Feminino,Pública,Presencial,Não,Sim,2.29
+PUBLICA,Amarela,Feminino,Pública,Presencial,Sim,Não,2.98
+PRIVADA,Amarela,Feminino,Pública,Presencial,Sim,Não,3.66
+PUBLICA,Amarela,Feminino,Pública,Presencial,Sim,Sim,3.08
+PRIVADA,Amarela,Feminino,Pública,Presencial,Sim,Sim,3.0
+PUBLICA,Amarela,Feminino,Pública,EAD,Não,Não,2.18
+PRIVADA,Amarela,Feminino,Pública,EAD,Não,Não,3.23
+PUBLICA,Amarela,Feminino,Pública,EAD,Não,Sim,2.33
+PRIVADA,Amarela,Feminino,Pública,EAD,Não,Sim,2.51
+PUBLICA,Amarela,Feminino,Pública,EAD,Sim,Não,2.0
+PRIVADA,Amarela,Feminino,Pública,EAD,Sim,Não,1.72
+PUBLICA,Amarela,Feminino,Pública,EAD,Sim,Sim,2.16
+PRIVADA,Amarela,Feminino,Pública,EAD,Sim,Sim,1.63
+PUBLICA,Indígena,Masculino,Privada,Presencial,Não,Não,2.43
+PRIVADA,Indígena,Masculino,Privada,Presencial,Não,Não,1.35
+PUBLICA,Indígena,Masculino,Privada,Presencial,Não,Sim,2.03
+PRIVADA,Indígena,Masculino,Privada,Presencial,Não,Sim,1.35
+PUBLICA,Indígena,Masculino,Privada,Presencial,Sim,Não,2.43
+PRIVADA,Indígena,Masculino,Privada,Presencial,Sim,Não,3.0
+PUBLICA,Indígena,Masculino,Privada,Presencial,Sim,Sim,2.03
+PRIVADA,Indígena,Masculino,Privada,Presencial,Sim,Sim,2.37
+PUBLICA,Indígena,Masculino,Privada,EAD,Não,Não,2.43
+PRIVADA,Indígena,Masculino,Privada,EAD,Não,Não,3.0
+PUBLICA,Indígena,Masculino,Privada,EAD,Não,Sim,2.03
+PRIVADA,Indígena,Masculino,Privada,EAD,Não,Sim,2.02
+PUBLICA,Indígena,Masculino,Privada,EAD,Sim,Não,2.43
+PRIVADA,Indígena,Masculino,Privada,EAD,Sim,Não,3.0
+PUBLICA,Indígena,Masculino,Privada,EAD,Sim,Sim,2.03
+PRIVADA,Indígena,Masculino,Privada,EAD,Sim,Sim,3.0
+PUBLICA,Indígena,Masculino,Pública,Presencial,Não,Não,3.89
+PRIVADA,Indígena,Masculino,Pública,Presencial,Não,Não,3.15
+PUBLICA,Indígena,Masculino,Pública,Presencial,Não,Sim,3.76
+PRIVADA,Indígena,Masculino,Pública,Presencial,Não,Sim,3.27
+PUBLICA,Indígena,Masculino,Pública,Presencial,Sim,Não,3.89
+PRIVADA,Indígena,Masculino,Pública,Presencial,Sim,Não,2.05
+PUBLICA,Indígena,Masculino,Pública,Presencial,Sim,Sim,3.76
+PRIVADA,Indígena,Masculino,Pública,Presencial,Sim,Sim,4.2
+PUBLICA,Indígena,Masculino,Pública,EAD,Não,Não,3.23
+PRIVADA,Indígena,Masculino,Pública,EAD,Não,Não,2.3
+PUBLICA,Indígena,Masculino,Pública,EAD,Não,Sim,3.05
+PRIVADA,Indígena,Masculino,Pública,EAD,Não,Sim,1.93
+PUBLICA,Indígena,Masculino,Pública,EAD,Sim,Não,3.23
+PRIVADA,Indígena,Masculino,Pública,EAD,Sim,Não,2.15
+PUBLICA,Indígena,Masculino,Pública,EAD,Sim,Sim,3.05
+PRIVADA,Indígena,Masculino,Pública,EAD,Sim,Sim,1.83
+PUBLICA,Indígena,Feminino,Privada,Presencial,Não,Não,4.0
+PRIVADA,Indígena,Feminino,Privada,Presencial,Não,Não,2.68
+PUBLICA,Indígena,Feminino,Privada,Presencial,Não,Sim,3.45
+PRIVADA,Indígena,Feminino,Privada,Presencial,Não,Sim,1.75
+PUBLICA,Indígena,Feminino,Privada,Presencial,Sim,Não,4.0
+PRIVADA,Indígena,Feminino,Privada,Presencial,Sim,Não,2.01
+PUBLICA,Indígena,Feminino,Privada,Presencial,Sim,Sim,3.45
+PRIVADA,Indígena,Feminino,Privada,Presencial,Sim,Sim,2.34
+PUBLICA,Indígena,Feminino,Privada,EAD,Não,Não,4.0
+PRIVADA,Indígena,Feminino,Privada,EAD,Não,Não,2.51
+PUBLICA,Indígena,Feminino,Privada,EAD,Não,Sim,3.45
+PRIVADA,Indígena,Feminino,Privada,EAD,Não,Sim,1.26
+PUBLICA,Indígena,Feminino,Privada,EAD,Sim,Não,4.0
+PRIVADA,Indígena,Feminino,Privada,EAD,Sim,Não,1.0
+PUBLICA,Indígena,Feminino,Privada,EAD,Sim,Sim,3.45
+PRIVADA,Indígena,Feminino,Privada,EAD,Sim,Sim,1.0
+PUBLICA,Indígena,Feminino,Pública,Presencial,Não,Não,3.49
+PRIVADA,Indígena,Feminino,Pública,Presencial,Não,Não,4.0
+PUBLICA,Indígena,Feminino,Pública,Presencial,Não,Sim,2.15
+PRIVADA,Indígena,Feminino,Pública,Presencial,Não,Sim,3.45
+PUBLICA,Indígena,Feminino,Pública,Presencial,Sim,Não,3.31
+PRIVADA,Indígena,Feminino,Pública,Presencial,Sim,Não,3.62
+PUBLICA,Indígena,Feminino,Pública,Presencial,Sim,Sim,1.98
+PRIVADA,Indígena,Feminino,Pública,Presencial,Sim,Sim,3.0
+PUBLICA,Indígena,Feminino,Pública,EAD,Não,Não,2.53
+PRIVADA,Indígena,Feminino,Pública,EAD,Não,Não,2.85
+PUBLICA,Indígena,Feminino,Pública,EAD,Não,Sim,1.25
+PRIVADA,Indígena,Feminino,Pública,EAD,Não,Sim,2.5
+PUBLICA,Indígena,Feminino,Pública,EAD,Sim,Não,2.35
+PRIVADA,Indígena,Feminino,Pública,EAD,Sim,Não,1.72
+PUBLICA,Indígena,Feminino,Pública,EAD,Sim,Sim,1.08
+PRIVADA,Indígena,Feminino,Pública,EAD,Sim,Sim,1.63

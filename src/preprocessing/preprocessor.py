@@ -6,7 +6,7 @@ from sklearn.pipeline import Pipeline
 import joblib
 import os
 
-def preprocess_data(df, target_column='tempo_permanencia'):
+def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_threshold=50):
     """
     Prepara os dados para treinamento, aplicando encoding e scaling de forma robusta.
     """
@@ -22,7 +22,7 @@ def preprocess_data(df, target_column='tempo_permanencia'):
 
     # 3. Identificar e remover colunas categóricas com muitas categorias (alta cardinalidade)
     #    Isso evita a criação de um número excessivo de features.
-    high_cardinality_cols = [col for col in categorical_features if X[col].nunique() > 50]
+    high_cardinality_cols = [col for col in categorical_features if X[col].nunique() > high_cardinality_threshold]
     categorical_features = [col for col in categorical_features if col not in high_cardinality_cols]
     
     print(f"Colunas numéricas identificadas: {numerical_features}")

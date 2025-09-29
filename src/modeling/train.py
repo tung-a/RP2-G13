@@ -3,7 +3,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 import pandas as pd
 
-def train_model(X_train, y_train):
+def train_model(X_train, y_train,params= None):
     """
     Treina um modelo de regressão.
     
@@ -14,8 +14,13 @@ def train_model(X_train, y_train):
     Returns:
         O modelo treinado.
     """
-    # Usaremos o RandomForestRegressor, que é potente para este tipo de problema
-    model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    if params is None:
+        params = {}
+    
+    if 'n_estimators' not in params:
+        params['n_estimators'] = 100
+
+    model = RandomForestRegressor(**params, random_state=42, n_jobs=-1)
     print("Iniciando o treinamento do modelo RandomForestRegressor...")
     model.fit(X_train, y_train)
     print("Treinamento finalizado.")

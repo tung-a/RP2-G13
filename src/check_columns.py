@@ -27,14 +27,10 @@ def main():
     # Caminhos para os novos arquivos que você quer inspecionar
     files_to_check = {
         "IES": os.path.join('data', 'ces', 'SoU_censo_IES', 'SoU_censo_IES.csv'),
-        "Alunos 2009": os.path.join('data', 'ces', 'SoU_censo_alunos', 'SoU_censo_alunos_2009', 'SoU_censo_aluno_2009.csv'),
-        "Alunos 2010": os.path.join('data', 'ces', 'SoU_censo_alunos', 'SoU_censo_alunos_2010', 'SoU_censo_aluno_2010.csv'),
-        "Alunos 2011": os.path.join('data', 'ces', 'SoU_censo_alunos', 'SoU_censo_alunos_2011', 'SoU_censo_aluno_2011.csv'),
+        "Alunos 2009": os.path.join('data', 'ces', 'SoU_censo_alunos', 'SoU_censo_alunos_2009', 'SoU_censo_aluno_2019.csv'),
         "Cursos": os.path.join('data', 'ces', 'SoU_censo_cursos', 'SoU_censo_curso.csv'),
         "Docentes": os.path.join('data', 'ces', 'SoU_censo_docentes', 'SoU_censo_docente.csv'),
-        "ENADE 2009": os.path.join('data', 'enade', 'SoU_enade', 'SoU_enade_2009', 'SoU_enade_2009.csv'),
-        "ENADE 2010": os.path.join('data', 'enade', 'SoU_enade', 'SoU_enade_2010', 'SoU_enade_2010.csv'),
-        "ENADE 2011": os.path.join('data', 'enade', 'SoU_enade', 'SoU_enade_2011', 'SoU_enade_2011.csv'),
+        "ENADE 2009": os.path.join('data', 'enade', 'SoU_enade', 'SoU_enade_2009', 'SoU_enade_2019.csv'),
     }
 
     for name, path in files_to_check.items():

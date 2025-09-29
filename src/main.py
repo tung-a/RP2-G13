@@ -1,8 +1,9 @@
 import os
+import pandas as pd
 from data_processing.data_integration import load_and_integrate_data, split_by_institution_type
 from preprocessing.preprocessor import preprocess_data, save_preprocessor
 from modeling.train import train_model, evaluate_model, save_model
-from analysis.regression_analysis import analyze_feature_importance, save_metrics_report
+from analysis.regression_analysis import analyze_feature_importance, plot_combined_feature_importance, save_metrics_report
 
 def main():
     """
@@ -26,12 +27,17 @@ def main():
 
     df_publica, df_privada = split_by_institution_type(integrated_df)
 
+    df_publica.to_csv('data/publica_sample.csv', index=False)
+    df_privada.to_csv('data/privada_sample.csv', index=False)
+    
     metrics = {}
     
     datasets = {
         'publica': df_publica,
         'privada': df_privada
     }
+
+    datasets_graficos = {}
 
     for name, df in datasets.items():
         if df.empty:
@@ -52,8 +58,10 @@ def main():
         metrics[name] = evaluate_model(model, X_test, y_test)
         
         # 5. Análise - ALTERAÇÃO APLICADA AQUI
-        analyze_feature_importance(model, preprocessor_pipeline, REPORTS_PATH, name)
+        datasets_graficos[name] = analyze_feature_importance(model, preprocessor_pipeline, REPORTS_PATH, name)
 
+    plot_combined_feature_importance(datasets_graficos.get('publica'), datasets_graficos.get('privada'), REPORTS_PATH)
+    
     # 6. Salvar Relatório Final de Métricas
     if 'publica' in metrics and 'privada' in metrics:
         save_metrics_report(metrics['publica'], metrics['privada'], 'reports')

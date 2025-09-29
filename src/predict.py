@@ -26,7 +26,6 @@ def predict_permanence(student_data, institution_type):
 
     return prediction[0]
 
-
 def run_and_save_all_scenarios():
     """
     Gera, testa e guarda num CSV todas as combinações possíveis de perfis de alunos.
@@ -42,46 +41,61 @@ def run_and_save_all_scenarios():
         'in_apoio_social': {0: "Não", 1: "Sim"}
     }
     
-    base_values = {
+    # Adicionando valores de IGC para cada faixa
+    igc_faixas = {
+        1: 0.5,
+        2: 1.5,
+        3: 2.5,
+        4: 3.5,
+        5: 4.5,
+    }
+
+    base_values_template = {
         'faixa_etaria': 3,
         'tp_grau_academico': 1,
-        'nu_carga_horaria': 3600
+        'nu_carga_horaria': 3600,
+        'nu_ano_censo_y': 2019.0,
     }
 
     keys = possible_values.keys()
     value_codes = [list(v.keys()) for v in possible_values.values()]
     all_combinations = list(itertools.product(*value_codes))
     
-    print(f"Total de cenários a serem calculados: {len(all_combinations) * 2}")
+    print(f"Total de cenários a serem calculados: {len(all_combinations) * 2 * len(igc_faixas)}")
 
     results = []
     
     for combo in all_combinations:
-        student_profile = base_values.copy()
-        for i, key in enumerate(keys):
-            student_profile[key] = combo[i]
-
-        for inst_type, inst_code in [('publica', 1), ('privada', 5)]:
-            profile_for_prediction = student_profile.copy()
-            profile_for_prediction['tp_categoria_administrativa'] = inst_code
+        for igc_faixa, igc_value in igc_faixas.items():
+            student_profile = base_values_template.copy()
+            student_profile['igc'] = igc_value
+            student_profile['igc_faixa'] = igc_faixa
             
-            prediction = predict_permanence(profile_for_prediction, inst_type)
+            for i, key in enumerate(keys):
+                student_profile[key] = combo[i]
 
-            if isinstance(prediction, float):
-                profile_description = {
-                    "Cor/Raça": possible_values['tp_cor_raca'][profile_for_prediction['tp_cor_raca']],
-                    "Sexo": possible_values['tp_sexo'][profile_for_prediction['tp_sexo']],
-                    "Escola Média": possible_values['tp_escola_conclusao_ens_medio'][profile_for_prediction['tp_escola_conclusao_ens_medio']],
-                    "Modalidade": possible_values['tp_modalidade_ensino'][profile_for_prediction['tp_modalidade_ensino']],
-                    "Financiamento": possible_values['in_financiamento_estudantil'][profile_for_prediction['in_financiamento_estudantil']],
-                    "Apoio Social": possible_values['in_apoio_social'][profile_for_prediction['in_apoio_social']]
-                }
+            for inst_type, inst_code in [('publica', 1), ('privada', 5)]:
+                profile_for_prediction = student_profile.copy()
+                profile_for_prediction['tp_categoria_administrativa'] = inst_code
                 
-                results.append({
-                    "Tipo IES": inst_type.upper(),
-                    **profile_description,
-                    "Previsão (anos)": round(prediction, 2)
-                })
+                prediction = predict_permanence(profile_for_prediction, inst_type)
+
+                if isinstance(prediction, float):
+                    profile_description = {
+                        "Cor/Raça": possible_values['tp_cor_raca'][profile_for_prediction['tp_cor_raca']],
+                        "Sexo": possible_values['tp_sexo'][profile_for_prediction['tp_sexo']],
+                        "Escola Média": possible_values['tp_escola_conclusao_ens_medio'][profile_for_prediction['tp_escola_conclusao_ens_medio']],
+                        "Modalidade": possible_values['tp_modalidade_ensino'][profile_for_prediction['tp_modalidade_ensino']],
+                        "Financiamento": possible_values['in_financiamento_estudantil'][profile_for_prediction['in_financiamento_estudantil']],
+                        "Apoio Social": possible_values['in_apoio_social'][profile_for_prediction['in_apoio_social']],
+                        "Faixa IGC": igc_faixa
+                    }
+                    
+                    results.append({
+                        "Tipo IES": inst_type.upper(),
+                        **profile_description,
+                        "Previsão (anos)": round(prediction, 2)
+                    })
 
     results_df = pd.DataFrame(results)
     
@@ -108,51 +122,65 @@ def analyze_predictions(csv_path):
     FIGURES_PATH = 'reports/figures'
     os.makedirs(FIGURES_PATH, exist_ok=True)
 
+    # 1. Análise de Impacto por Característica (Gráficos Combinados)
+    print("\n[Análise 1: Impacto Médio de Cada Característica na Previsão (Gráficos Combinados)]")
+    features_to_analyze = ["Modalidade", "Escola Média", "Financiamento", "Apoio Social", "Cor/Raça", "Faixa IGC"]
+    
+    for feature in features_to_analyze:
+        # Agrupar os dados para calcular a média de previsão por característica e tipo de IES
+        combined_impact = df.groupby(['Tipo IES', feature])['Previsão (anos)'].mean().reset_index()
+
+        # Criar o gráfico combinado
+        plt.style.use('seaborn-v0_8-whitegrid')
+        plt.figure(figsize=(12, 8))
+        
+        ax = sns.barplot(
+            x=feature,
+            y='Previsão (anos)',
+            hue='Tipo IES',
+            data=combined_impact,
+            palette={'PUBLICA': '#2c7fb8', 'PRIVADA': '#41b6c4'}
+        )
+        
+        plt.title(f'Impacto Médio da Característica "{feature}" na Previsão de Permanência', fontsize=16, fontweight='bold')
+        plt.ylabel('Previsão Média de Permanência (anos)', fontsize=12)
+        plt.xlabel(feature, fontsize=12)
+        plt.xticks(rotation=45, ha='right')
+        
+        # Adicionar rótulos de dados
+        for container in ax.containers:
+            for p in container.patches:
+                height = p.get_height()
+                ax.text(
+                    p.get_x() + p.get_width() / 2.,
+                    height,
+                    f'{height:.2f}',
+                    ha='center',
+                    va='bottom',
+                    fontsize=10
+                )
+        
+        plt.tight_layout()
+        
+        # Guardar o gráfico
+        plot_path = os.path.join(FIGURES_PATH, f'impacto_combinado_{feature.lower().replace("/", "")}.png')
+        plt.savefig(plot_path)
+        plt.close()
+        print(f"-> Gráfico combinado para '{feature}' guardado em: {plot_path}")
+
+    # 2. Análise dos Cenários Extremos
+    print("\n\n[Análise 2: Perfis com Maiores e Menores Previsões]")
     for inst_type in ['PUBLICA', 'PRIVADA']:
-        print(f"\n--- ANÁLISE PARA INSTITUIÇÕES DO TIPO: {inst_type} ---")
         subset_df = df[df['Tipo IES'] == inst_type].copy()
-        
-        # 1. Análise de Impacto por Característica (Textual e Gráfica)
-        print("\n[Análise 1: Impacto Médio de Cada Característica na Previsão]")
-        features_to_analyze = ["Modalidade", "Escola Média", "Financiamento", "Apoio Social", "Cor/Raça"]
-        
-        for feature in features_to_analyze:
-            impact_analysis = subset_df.groupby(feature)['Previsão (anos)'].mean().sort_values(ascending=False)
-            
-            # Análise textual
-            print(f"\nImpacto da característica '{feature}':")
-            print(impact_analysis.to_string())
-            if len(impact_analysis) > 1:
-                diff = impact_analysis.max() - impact_analysis.min()
-                print(f"-> Diferença máxima de impacto: {diff:.2f} anos")
-
-            # Geração de Gráfico
-            plt.figure(figsize=(10, 6))
-            sns.barplot(x=impact_analysis.index, y=impact_analysis.values, palette='viridis')
-            plt.title(f'Impacto Médio da Característica "{feature}"\nem IES do tipo {inst_type}')
-            plt.ylabel('Previsão Média de Permanência (anos)')
-            plt.xlabel(feature)
-            plt.xticks(rotation=45, ha='right')
-            plt.tight_layout()
-            
-            # Guardar o gráfico
-            plot_path = os.path.join(FIGURES_PATH, f'impacto_{feature.lower().replace("/", "")}_{inst_type.lower()}.png')
-            plt.savefig(plot_path)
-            plt.close()
-            print(f"-> Gráfico guardado em: {plot_path}")
-
-        # 2. Análise dos Cenários Extremos
-        print("\n\n[Análise 2: Perfis com Maiores e Menores Previsões]")
         if not subset_df.empty:
             max_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmax()]
             min_pred = subset_df.loc[subset_df['Previsão (anos)'].idxmin()]
             
-            print("\nCenário com MAIOR tempo de permanência previsto:")
+            print(f"\nCenário com MAIOR tempo de permanência previsto para IES {inst_type}:")
             print(max_pred.to_string())
             
-            print("\nCenário com MENOR tempo de permanência previsto:")
+            print(f"\nCenário com MENOR tempo de permanência previsto para IES {inst_type}:")
             print(min_pred.to_string())
-
 
 if __name__ == '__main__':
     # Passo 1: Gerar e guardar todos os cenários num ficheiro CSV

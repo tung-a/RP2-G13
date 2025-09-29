@@ -8,8 +8,15 @@ import os
 
 def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_threshold=50):
     """
-    Prepara os dados para treinamento, aplicando encoding e scaling de forma robusta.
+    Prepara os dados para treinamento, removendo colunas que causam fuga de dados,
+    e aplicando encoding e scaling de forma robusta.
     """
+    # --- CORREÇÃO DE DATA LEAKAGE ---
+    # Remove colunas que são calculadas a partir do alvo ou que contêm a resposta.
+    # Esta é a correção mais importante para obter um modelo válido.
+    cols_to_drop = ['nu_ano_censo', 'diferenca_permanencia', 'status_conclusao', 'tipo_ies']
+    df = df.drop(columns=[col for col in cols_to_drop if col in df.columns], errors='ignore')
+
     # 1. Remover linhas com dados faltantes para garantir a qualidade
     df.dropna(inplace=True)
 
@@ -21,7 +28,6 @@ def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_thre
     numerical_features = X.select_dtypes(include=['int64', 'float64', 'int32', 'float32']).columns.tolist()
 
     # 3. Identificar e remover colunas categóricas com muitas categorias (alta cardinalidade)
-    #    Isso evita a criação de um número excessivo de features.
     high_cardinality_cols = [col for col in categorical_features if X[col].nunique() > high_cardinality_threshold]
     categorical_features = [col for col in categorical_features if col not in high_cardinality_cols]
     
@@ -33,10 +39,7 @@ def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_thre
     numerical_transformer = StandardScaler()
     categorical_transformer = OneHotEncoder(handle_unknown='ignore')
 
-    # --- CORREÇÃO APLICADA AQUI ---
-    # Alterado remainder='passthrough' para remainder='drop'.
-    # Isso garante que qualquer coluna não especificada (como as de alta cardinalidade)
-    # seja descartada em vez de enviada ao modelo.
+    # Garante que qualquer coluna não especificada seja descartada
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', numerical_transformer, numerical_features),

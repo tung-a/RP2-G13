@@ -30,7 +30,7 @@ def main():
         "Alunos 2009": os.path.join('data', 'ces', 'SoU_censo_alunos', 'SoU_censo_alunos_2009', 'SoU_censo_aluno_2019.csv'),
         "Cursos": os.path.join('data', 'ces', 'SoU_censo_cursos', 'SoU_censo_curso.csv'),
         "Docentes": os.path.join('data', 'ces', 'SoU_censo_docentes', 'SoU_censo_docente.csv'),
-        "ENADE 2009": os.path.join('data', 'enade', 'SoU_enade', 'SoU_enade_2009', 'SoU_enade_2019.csv'),
+        "ENADE 2009": os.path.join('data', 'enade', 'SoU_enade', 'SoU_enade_2009', 'SoU_enade_2009.csv'),
     }
 
     for name, path in files_to_check.items():

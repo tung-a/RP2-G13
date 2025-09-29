@@ -11,13 +11,13 @@ from modeling.train import train_model, evaluate_model, save_model
 from preprocessing.preprocessor import preprocess_data, save_preprocessor
 from lightgbm import LGBMRegressor
 
-# Dataset reduzido para testes rápidos
+# Carrega os dados de amostra gerados pelo main.py
 datasets = {
-    'publica': pd.read_csv('data/publica_sample.csv').sample(frac=0.13, random_state=42),
-    'privada': pd.read_csv('data/privada_sample.csv').sample(frac=0.13, random_state=42)
+    'publica': pd.read_csv('data/publica_sample.csv'),
+    'privada': pd.read_csv('data/privada_sample.csv')
 }
 
-# --- Argumentos de linha de comando atualizados ---
+# Argumentos de linha de comando
 parser = argparse.ArgumentParser(description='Run Grid Search or Random Search with different models.')
 parser.add_argument('--model', type=str, default='RandomForest',
                     choices=['RandomForest', 'LightGBM', 'GradientBoosting', 'SVR', 'Ridge'],
@@ -28,45 +28,41 @@ parser.add_argument('--method', type=str, default='grid',
 parser.add_argument('--n_iter', type=int, default=20,
                     help='Number of iterations for RandomizedSearchCV.')
 args = parser.parse_args()
-# -----------------------------------------------
 
-# Define o modelo e os parâmetros com base na escolha do usuário
+# Define o modelo e os hiperparâmetros com base na escolha do usuário
 if args.model == 'RandomForest':
     model = RandomForestRegressor(random_state=42, n_jobs=-1)
     param_grid = {
         'n_estimators': [100, 200],
         'max_depth': [10, 20],
-        'min_samples_split': [2, 5, 4],
-        'min_samples_leaf': [1, 2, 10],
-        'bootstrap': [True],
-        'criterion': ['squared_error']
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4],
     }
     param_distributions = {
         'n_estimators': randint(100, 500),
-        'max_features': ['sqrt', 'log2'],
         'max_depth': [10, 20, None],
-        'min_samples_split': randint(1, 11),
+        'min_samples_split': randint(2, 11),
         'min_samples_leaf': randint(1, 5),
     }
 elif args.model == 'LightGBM':
     model = LGBMRegressor(random_state=42, n_jobs=-1)
     param_grid = {
         'n_estimators': [100, 200, 300],
-        'learning_rate': [0.05, 0.1, 0.2],
-        'num_leaves': [31, 62, 127],
-        'max_depth': [10, 20, -1],
+        'learning_rate': [0.05, 0.1],
+        'num_leaves': [31, 62],
+        'max_depth': [10, -1],
     }
     param_distributions = {
         'n_estimators': randint(100, 500),
         'learning_rate': uniform(0.01, 0.3),
         'num_leaves': randint(20, 150),
-        'max_depth': [10, 20, -1],
+        'max_depth': [10, -1],
     }
 elif args.model == 'GradientBoosting':
     model = GradientBoostingRegressor(random_state=42)
     param_grid = {
         'n_estimators': [100, 200],
-        'learning_rate': [0.01, 0.05, 0.1, 0.2],
+        'learning_rate': [0.05, 0.1, 0.2],
         'max_depth': [3, 5, 7],
     }
     param_distributions = {
@@ -79,7 +75,7 @@ elif args.model == 'SVR':
     param_grid = {
         'kernel': ['rbf', 'linear'],
         'C': [0.1, 1, 10],
-        'epsilon': [0.1, 0.2, 0.5],
+        'epsilon': [0.1, 0.2],
     }
     param_distributions = {
         'kernel': ['rbf', 'linear'],
@@ -89,15 +85,15 @@ elif args.model == 'SVR':
 elif args.model == 'Ridge':
     model = Ridge(random_state=42)
     param_grid = {
-        'alpha': [0.1, 1.0, 10.0, 100.0],
-        'solver': ['auto', 'svd', 'cholesky', 'lsqr'],
+        'alpha': [0.1, 1.0, 10.0],
+        'solver': ['auto', 'svd', 'lsqr'],
     }
     param_distributions = {
         'alpha': uniform(0.1, 100),
-        'solver': ['auto', 'svd', 'cholesky', 'lsqr'],
+        'solver': ['auto', 'svd', 'lsqr'],
     }
 
-# Lista para armazenar os resultados de todos os modelos
+# Lista para armazenar os resultados
 all_results = []
 
 for name, df in datasets.items():
@@ -105,45 +101,23 @@ for name, df in datasets.items():
         print(f"\n--- DataFrame '{name}' está vazio. Pulando treinamento. ---")
         continue
 
-    # 2. Pré-processamento
     X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df)
-    save_preprocessor(preprocessor_pipeline, os.path.join('models', f'preprocessor_{name}.joblib'))
-
-    # Configura o objeto de busca com base no método e no novo parâmetro escolhido
+    
     if args.method == 'grid':
         print(f"Iniciando GridSearchCV para o modelo {args.model}...")
-        search = GridSearchCV(
-            estimator=model,
-            param_grid=param_grid,
-            cv=5,
-            scoring='neg_mean_squared_error',
-            n_jobs=-1,
-            verbose=2
-        )
-    elif args.method == 'random':
+        search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='neg_mean_squared_error', n_jobs=-1, verbose=1)
+    else: # random
         print(f"Iniciando RandomizedSearchCV para o modelo {args.model} com {args.n_iter} iterações...")
-        search = RandomizedSearchCV(
-            estimator=model,
-            param_distributions=param_distributions,
-            n_iter=args.n_iter,
-            cv=5,
-            scoring='neg_mean_squared_error',
-            n_jobs=-1,
-            random_state=42,
-            verbose=2
-        )
+        search = RandomizedSearchCV(estimator=model, param_distributions=param_distributions, n_iter=args.n_iter, cv=3, scoring='neg_mean_squared_error', n_jobs=-1, random_state=42, verbose=1)
 
     print(f"\n--- Processando Dados para Instituições do Tipo: {name.upper()} ---")
     search.fit(X_train, y_train)
-    print("Busca de hiperparâmetros finalizada.")
-
+    
     best_model = search.best_estimator_
     print(f"Melhores hiperparâmetros: {search.best_params_}")
 
     metrics = evaluate_model(best_model, X_test, y_test)
-    print(f"Métricas de avaliação no conjunto de teste: {metrics}")
-
-    # Armazena os resultados em um dicionário
+    
     result = {
         'model': args.model,
         'dataset': name,
@@ -156,13 +130,18 @@ for name, df in datasets.items():
     }
     all_results.append(result)
 
-    model_path = os.path.join('models', f'{args.model}_{name}.joblib')
+    # Salva o arquivo .joblib na pasta 'models'
+    MODELS_PATH = 'models'
+    os.makedirs(MODELS_PATH, exist_ok=True)
+    model_path = os.path.join(MODELS_PATH, f'{args.model}_{name}_best.joblib')
     save_model(best_model, model_path)
-    print(f"Modelo salvo em: {model_path}")
+    print(f"Melhor modelo salvo em: {model_path}")
 
-# --- Adiciona o timestamp para o nome do arquivo ---
+# Salva o resumo .csv na pasta 'reports'
+REPORTS_PATH = 'reports'
+os.makedirs(REPORTS_PATH, exist_ok=True)
 timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 results_df = pd.DataFrame(all_results)
-results_csv_path = os.path.join('models', f'model_performance_summary_{timestamp}.csv')
+results_csv_path = os.path.join(REPORTS_PATH, f'model_performance_summary_{timestamp}.csv')
 results_df.to_csv(results_csv_path, index=False)
 print(f"\nResumo de desempenho de todos os modelos salvo em: {results_csv_path}")

@@ -27,6 +27,7 @@ parser.add_argument('--method', type=str, default='grid',
                     help='Choose the search method: "grid" for GridSearchCV or "random" for RandomizedSearchCV.')
 parser.add_argument('--n_iter', type=int, default=20,
                     help='Number of iterations for RandomizedSearchCV.')
+
 args = parser.parse_args()
 
 # Define o modelo e os hiperparâmetros com base na escolha do usuário

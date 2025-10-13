@@ -15,7 +15,14 @@ def train_model(X_train, y_train,params= None):
         O modelo treinado.
     """
     if params is None:
-        params = {}
+        params = {
+            'bootstrap': True, 
+            'criterion': 'squared_error',
+            'max_depth': 30, 
+            'min_samples_leaf': 1,
+            'min_samples_split': 2,
+            'n_estimators': 300
+        }
     
     if 'n_estimators' not in params:
         params['n_estimators'] = 100

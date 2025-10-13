@@ -4,7 +4,7 @@ import numpy as np
 import os
 import gc
 
-def load_and_integrate_data(data_path):
+def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     """
     Carrega e integra os dados, corrigindo o formato decimal das colunas de
     duração do curso para garantir a criação correta do 'período ideal'.
@@ -20,13 +20,16 @@ def load_and_integrate_data(data_path):
     ]
     curso_cols = [
         'NU_ANO_CENSO', 'CO_IES', 'CO_CURSO', 'TP_MODALIDADE_ENSINO', 'NU_CARGA_HORARIA', 
-        'TP_GRAU_ACADEMICO', 'NU_INTEGRALIZACAO_INTEGRAL', 'NU_INTEGRALIZACAO_MATUTINO',
+        'TP_GRAU_ACADEMICO', 'NU_INTEGRALIZACAO_INTEGRAL', 'NU_INTEGRALIZACAO_MATUTINO', 
         'NU_INTEGRALIZACAO_VESPERTINO', 'NU_INTEGRALIZACAO_NOTURNO', 'NU_INTEGRALIZACAO_EAD',
-        'QT_INSCRITO_TOTAL','QT_VAGA_TOTAL'
+        'QT_INSCRITO_TOTAL','QT_VAGA_TOTAL','CO_CINE_ROTULO'
     ]
     ies_cols = ['co_ies', 'nu_ano_censo', 'tp_categoria_administrativa', 'no_regiao_ies']
     igc_cols = ['ano', 'cod_ies', 'igc', 'igc_fx']
     dtype_map = {'co_ies': 'float64', 'co_curso': 'float64', 'nu_ano_censo': 'float64'}
+
+    cine_cols = ["CO_CINE_AREA_GERAL", "NM_CINE_AREA_GERAL", "CO_CINE_AREA_ESPECIFICA", "NM_CINE_AREA_ESPECIFICA", "CO_CINE_ROTULO"]
+
 
     # 2. Carregar os dados
     print("--- Carregando arquivos CSV... ---")
@@ -37,8 +40,20 @@ def load_and_integrate_data(data_path):
     cursos_df = pd.read_csv(os.path.join(data_path, 'ces', 'SoU_censo_cursos', 'SoU_censo_curso.csv'), sep=';', encoding='latin1', usecols=curso_cols, low_memory=False)
     ies_df = pd.read_csv(os.path.join(data_path, 'ces', 'SoU_censo_IES', 'SoU_censo_IES.csv'), sep=';', encoding='latin1', usecols=ies_cols)
     igc_df = pd.read_csv(os.path.join(data_path, 'igc', 'igc_tratado.csv'), sep=';', encoding='latin1', usecols=igc_cols)
+    cine_df = pd.read_csv(os.path.join(data_path, 'cine', 'cine.csv'), sep=',', encoding='latin1', usecols=cine_cols)
+
     igc_df = igc_df.rename(columns={'ano': 'nu_ano_censo', 'cod_ies': 'co_ies'})
 
+    if nivel_especifico_categoria:
+        cine_df = cine_df.rename(columns={'NM_CINE_AREA_ESPECIFICA': 'nm_categoria', 'NM_CINE_AREA_GERAL': 'nm_categoria_dropar'})
+    else:
+        cine_df = cine_df.rename(columns={'NM_CINE_AREA_GERAL': 'nm_categoria', 'NM_CINE_AREA_ESPECIFICA': 'nm_categoria_dropar'})
+
+    cine_df = cine_df.drop(columns=['nm_categoria_dropar','CO_CINE_AREA_GERAL','CO_CINE_AREA_ESPECIFICA'])
+    
+    num_linhas = df.shape[0]
+    cursos_df = pd.merge(cursos_df, cine_df, on='CO_CINE_ROTULO', how='inner')
+    print(f"Quantidade de cursos antes do merge: {num_linhas}. Quantidade de cursos após o merge com CINE: {cursos_df.shape[0]}.")
     # 3. Criar 'tempo_permanencia' e 'duracao_ideal_anos' (corrigindo o formato decimal)
     alunos_dd['tempo_permanencia'] = alunos_dd['nu_ano_censo'] - alunos_dd['nu_ano_ingresso']
     

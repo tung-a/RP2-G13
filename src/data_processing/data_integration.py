@@ -76,7 +76,7 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     print(cursos_df.dtypes)
     num_linhas = cursos_df.shape[0]
     cursos_df = pd.merge(cursos_df, pib_df, left_on=['SIGLA_UF_CURSO','NU_ANO_CENSO'], right_on=['Sigla','ano'], how='inner')
-    cursos_df = cursos_df.drop(columns=['Sigla','ano','SIGLA_UF_CURSO'])
+    cursos_df = cursos_df.drop(columns=['Sigla','ano'])
     print(f"Quantidade de cursos antes do merge: {num_linhas}. Quantidade de cursos após o merge com ibge: {cursos_df.shape[0]}.")
     print(cursos_df)
     print(cursos_df.dtypes)

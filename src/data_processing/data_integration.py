@@ -22,7 +22,7 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
         'NU_ANO_CENSO', 'CO_IES', 'CO_CURSO', 'TP_MODALIDADE_ENSINO', 'NU_CARGA_HORARIA', 
         'TP_GRAU_ACADEMICO', 'NU_INTEGRALIZACAO_INTEGRAL', 'NU_INTEGRALIZACAO_MATUTINO', 
         'NU_INTEGRALIZACAO_VESPERTINO', 'NU_INTEGRALIZACAO_NOTURNO', 'NU_INTEGRALIZACAO_EAD',
-        'QT_INSCRITO_TOTAL','QT_VAGA_TOTAL','CO_CINE_ROTULO'
+        'QT_INSCRITO_TOTAL','QT_VAGA_TOTAL','CO_CINE_ROTULO','SIGLA_UF_CURSO'
     ]
     ies_cols = ['co_ies', 'nu_ano_censo', 'tp_categoria_administrativa', 'no_regiao_ies']
     igc_cols = ['ano', 'cod_ies', 'igc', 'igc_fx']
@@ -30,6 +30,7 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
 
     cine_cols = ["CO_CINE_AREA_GERAL", "NM_CINE_AREA_GERAL", "CO_CINE_AREA_ESPECIFICA", "NM_CINE_AREA_ESPECIFICA", "CO_CINE_ROTULO"]
 
+    pib_cols = ['Sigla', 'UF', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022']
 
     # 2. Carregar os dados
     print("--- Carregando arquivos CSV... ---")
@@ -41,8 +42,23 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     ies_df = pd.read_csv(os.path.join(data_path, 'ces', 'SoU_censo_IES', 'SoU_censo_IES.csv'), sep=';', encoding='latin1', usecols=ies_cols)
     igc_df = pd.read_csv(os.path.join(data_path, 'igc', 'igc_tratado.csv'), sep=';', encoding='latin1', usecols=igc_cols)
     cine_df = pd.read_csv(os.path.join(data_path, 'cine', 'cine.csv'), sep=',', encoding='latin1', usecols=cine_cols)
+    pib_df = pd.read_csv(os.path.join(data_path, 'ibge', 'pib_tratado.csv'), sep=';', encoding='latin1', usecols=pib_cols)
 
     igc_df = igc_df.rename(columns={'ano': 'nu_ano_censo', 'cod_ies': 'co_ies'})
+
+    print(pib_df)
+    # Preparar o DataFrame Pib para merge futuro
+    id_vars = ['Sigla', 'UF']
+    colunas_pib = [str(col) for col in pib_df.columns if col not in id_vars]
+
+    pib_df = pib_df.melt(
+        id_vars=id_vars,
+        value_vars=colunas_pib,
+        var_name='ano',
+        value_name='pib'
+    )
+    pib_df['ano'] = pib_df['ano'].astype('Int64')
+    pib_df = pib_df.drop(columns=['UF'])
 
     if nivel_especifico_categoria:
         cine_df = cine_df.rename(columns={'NM_CINE_AREA_ESPECIFICA': 'nm_categoria', 'NM_CINE_AREA_GERAL': 'nm_categoria_dropar'})
@@ -51,9 +67,20 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
 
     cine_df = cine_df.drop(columns=['nm_categoria_dropar','CO_CINE_AREA_GERAL','CO_CINE_AREA_ESPECIFICA'])
     
-    num_linhas = df.shape[0]
+    num_linhas = cursos_df.shape[0]
     cursos_df = pd.merge(cursos_df, cine_df, on='CO_CINE_ROTULO', how='inner')
     print(f"Quantidade de cursos antes do merge: {num_linhas}. Quantidade de cursos após o merge com CINE: {cursos_df.shape[0]}.")
+
+    print("--- Iniciando merge com PIB... ---")
+    cursos_df['NU_ANO_CENSO'] = pd.to_numeric(cursos_df['NU_ANO_CENSO'], errors='coerce').astype('Int64')
+    print(cursos_df.dtypes)
+    num_linhas = cursos_df.shape[0]
+    cursos_df = pd.merge(cursos_df, pib_df, left_on=['SIGLA_UF_CURSO','NU_ANO_CENSO'], right_on=['Sigla','ano'], how='inner')
+    cursos_df = cursos_df.drop(columns=['Sigla','ano','SIGLA_UF_CURSO'])
+    print(f"Quantidade de cursos antes do merge: {num_linhas}. Quantidade de cursos após o merge com ibge: {cursos_df.shape[0]}.")
+    print(cursos_df)
+    print(cursos_df.dtypes)
+
     # 3. Criar 'tempo_permanencia' e 'duracao_ideal_anos' (corrigindo o formato decimal)
     alunos_dd['tempo_permanencia'] = alunos_dd['nu_ano_censo'] - alunos_dd['nu_ano_ingresso']
     

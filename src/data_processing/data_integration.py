@@ -132,7 +132,7 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     
     final_df_dask['taxa_integralizacao'] = final_df_dask['tempo_permanencia'] / final_df_dask['duracao_ideal_anos']
 
-    cols_to_drop = ['tempo_permanencia', 'nu_ano_ingresso', 'tp_situacao', 'co_ies', 'co_curso', 'igc_fx']
+    cols_to_drop = ['tempo_permanencia', 'nu_ano_ingresso', 'tp_situacao', 'co_ies', 'co_curso', 'igc_fx','co_cine_rotulo']
     final_df_dask = final_df_dask.drop(columns=[col for col in cols_to_drop if col in final_df_dask.columns])
 
     print("--- Computando o DataFrame final... ---")

@@ -67,9 +67,6 @@ def plot_combined_feature_importance(df_publica, df_privada, report_path):
         combined_df = pd.concat([df_publica, df_privada])
 
         # --- MODIFICAÇÃO: Formatar nomes das features ---
-        combined_df['feature'] = combined_df['feature'].str.replace('in', 'Indicador de')
-        combined_df['feature'] = combined_df['feature'].str.replace('nu', 'Numero')
-        combined_df['feature'] = combined_df['feature'].str.replace('tp', 'tipo')
         combined_df['feature'] = combined_df['feature'].str.replace('_', ' ').str.title()
         
         # Ordenar as features pela importância média para uma visualização mais limpa

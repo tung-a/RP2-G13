@@ -115,7 +115,6 @@ def main():
     run_ideal_time_analysis(integrated_df.copy(), FIGURES_PATH)
     logger.info("Análise Comparativa concluída.")
 
-    # ... (O restante do seu código para treinamento de modelos)
     metrics = {}
     datasets_graficos = {}
     
@@ -131,7 +130,7 @@ def main():
             
         print(f"\n--- Processando Dados para Instituições do Tipo: {name.upper()} ---")
 
-        # 4. Pré-processamento (agora com o preprocessor.py corrigido)
+        # 4. Pré-processamento 
         X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df,target_column='taxa_integralizacao')
         save_preprocessor(preprocessor_pipeline, os.path.join(MODELS_PATH, f'preprocessor_{name}.joblib'))
 

@@ -15,7 +15,6 @@ def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_thre
     # Cria uma cópia para evitar SettingWithCopyWarning
     df = df[df['nu_ano_censo'] >= 2019].copy()
 
-    print(df.dtypes)
     # --- AJUSTES ESPECÍFICOS DE COLUNAS ---
     # 1. Ajustar 'tp_sexo' para booleano: 1 -> True, 2 -> False
     if 'tp_sexo' in df.columns:
@@ -30,6 +29,18 @@ def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_thre
     if 'tp_cor_raca' in df.columns:
         df['tp_cor_raca'] = df['tp_cor_raca'].astype('object')
 
+    if 'tp_escola_conclusao_ens_medio' in df.columns:
+        df['tp_escola_conclusao_ens_medio'] = df['tp_escola_conclusao_ens_medio'].astype('object')
+    
+    if 'tp_categoria_administrativa' in df.columns:
+        df['tp_categoria_administrativa'] = df['tp_categoria_administrativa'].astype('object')
+
+    if 'tp_modalidade_ensino' in df.columns:
+        df['tp_modalidade_ensino'] = df['tp_modalidade_ensino'].astype('object')
+
+    if 'tp_grau_academico' in df.columns:
+        df['tp_grau_academico'] = df['tp_grau_academico'].astype('object')
+
     # --- CORREÇÃO DE DATA LEAKAGE ---
     # Remove colunas que são calculadas a partir do alvo ou que contêm a resposta.
     # Esta é a correção mais importante para obter um modelo válido.
@@ -38,6 +49,7 @@ def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_thre
 
     # 1. Remover linhas com dados faltantes para garantir a qualidade
     df.dropna(inplace=True)
+    print(df.dtypes)
 
     X = df.drop(target_column, axis=1)
     y = df[target_column]

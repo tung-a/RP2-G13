@@ -5,7 +5,7 @@ import pandas as pd
 from data_processing.data_integration import load_and_integrate_data, split_by_institution_type
 from preprocessing.preprocessor import preprocess_data, save_preprocessor
 from modeling.train import train_model, evaluate_model, save_model
-from analysis.regression_analysis import analyze_feature_importance, plot_combined_feature_importance, save_metrics_report
+from analysis.regression_analysis import analyze_feature_importance, plot_combined_feature_importance, save_metrics_report, plot_combined_feature_importance_agregada
 # Importa a função de análise do tempo ideal
 from analysis.comparative_analysis import run_ideal_time_analysis
 from utils.log_config import setup_logging, get_dated_log_filename
@@ -145,7 +145,8 @@ def main():
         datasets_graficos[name] = analyze_feature_importance(model, preprocessor_pipeline, FIGURES_PATH, name)
 
     plot_combined_feature_importance(datasets_graficos.get('publica'), datasets_graficos.get('privada'), FIGURES_PATH)
-    
+    plot_combined_feature_importance_agregada(datasets_graficos.get('publica'), datasets_graficos.get('privada'), FIGURES_PATH, "RandomForest")
+
     # 8. Salvar Relatório Final de Métricas
     if 'publica' in metrics and 'privada' in metrics:
         save_metrics_report(metrics['publica'], metrics['privada'], REPORTS_PATH)

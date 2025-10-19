@@ -34,10 +34,12 @@ args = parser.parse_args()
 if args.model == 'RandomForest':
     model = RandomForestRegressor(random_state=42, n_jobs=-1)
     param_grid = {
-        'n_estimators': [100, 200],
-        'max_depth': [10, 20],
+        'n_estimators': [200, 300, 400],
+        'max_depth': [10, 20, None],
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 4],
+        'max_features': ['log2', 'sqrt', None],
+        'criterion': ['squared_error']
     }
     param_distributions = {
         'n_estimators': randint(100, 500),
@@ -48,10 +50,13 @@ if args.model == 'RandomForest':
 elif args.model == 'LightGBM':
     model = LGBMRegressor(random_state=42, n_jobs=-1)
     param_grid = {
-        'n_estimators': [100, 200, 300],
+        'n_estimators': [200, 300, 500],
         'learning_rate': [0.05, 0.1],
-        'num_leaves': [31, 62],
-        'max_depth': [10, -1],
+        'num_leaves': [31, 70],
+        'max_depth': [20, -1],
+        'min_child_samples': [20, 50],
+        'reg_alpha': [0.0, 0.1],
+        'reg_lambda': [0.0, 0.1]
     }
     param_distributions = {
         'n_estimators': randint(100, 500),
@@ -62,9 +67,11 @@ elif args.model == 'LightGBM':
 elif args.model == 'GradientBoosting':
     model = GradientBoostingRegressor(random_state=42)
     param_grid = {
-        'n_estimators': [100, 200],
-        'learning_rate': [0.05, 0.1, 0.2],
-        'max_depth': [3, 5, 7],
+        'n_estimators': [100, 200, 300],
+        'learning_rate': [0.01, 0.05, 0.1],
+        'max_depth': [3, 5, 8],
+        'subsample': [0.7, 0.9, 1.0],
+        'min_samples_split': [5, 10, 20]
     }
     param_distributions = {
         'n_estimators': randint(100, 500),
@@ -102,7 +109,7 @@ for name, df in datasets.items():
         print(f"\n--- DataFrame '{name}' está vazio. Pulando treinamento. ---")
         continue
 
-    X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df)
+    X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df, target_column='taxa_integralizacao')
     
     if args.method == 'grid':
         print(f"Iniciando GridSearchCV para o modelo {args.model}...")

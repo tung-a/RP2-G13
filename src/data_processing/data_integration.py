@@ -41,7 +41,7 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     cursos_df = pd.read_csv(os.path.join(data_path, 'ces', 'SoU_censo_cursos', 'SoU_censo_curso.csv'), sep=';', encoding='latin1', usecols=curso_cols, low_memory=False)
     ies_df = pd.read_csv(os.path.join(data_path, 'ces', 'SoU_censo_IES', 'SoU_censo_IES.csv'), sep=';', encoding='latin1', usecols=ies_cols)
     igc_df = pd.read_csv(os.path.join(data_path, 'igc', 'igc_tratado.csv'), sep=';', encoding='latin1', usecols=igc_cols)
-    cine_df = pd.read_csv(os.path.join(data_path, 'cine', 'cine.csv'), sep=',', encoding='latin1', usecols=cine_cols)
+    cine_df = pd.read_csv(os.path.join(data_path, 'cine', 'cine.csv'), sep=',', encoding='utf8', usecols=cine_cols)
     pib_df = pd.read_csv(os.path.join(data_path, 'ibge', 'pib_tratado.csv'), sep=';', encoding='latin1', usecols=pib_cols)
 
     igc_df = igc_df.rename(columns={'ano': 'nu_ano_censo', 'cod_ies': 'co_ies'})

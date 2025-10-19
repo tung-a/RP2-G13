@@ -18,10 +18,10 @@ def train_model(X_train, y_train,params= None):
         params = {
             'bootstrap': True, 
             'criterion': 'squared_error',
-            'max_depth': 30, 
+            'max_depth': None, 
             'min_samples_leaf': 1,
             'min_samples_split': 2,
-            'n_estimators': 300
+            'n_estimators': 400
         }
     
     if 'n_estimators' not in params:

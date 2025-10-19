@@ -212,13 +212,7 @@ def analyze_model_with_shap(model_name):
 
     # Lista de colunas para garantir o tipo correto, replicando o preprocessor.py
     # Assumindo estas colunas com base no preprocessor.py e run_and_save_all_scenarios
-    numerical_cols_example = ['faixa_etaria', 'nu_carga_horaria', 'duracao_ideal_anos', 'igc'] 
-    categorical_cols_example = [
-        'tp_cor_raca', 'tp_escola_conclusao_ens_medio', 
-        'tp_modalidade_ensino', 'in_financiamento_estudantil', 
-        'in_apoio_social', 'tp_grau_academico', 'tp_categoria_administrativa'
-    ]
-
+    
     for inst_type in ['publica', 'privada']:
         print(f"\nAnalisando modelo para IES: {inst_type.upper()}")
         
@@ -270,8 +264,7 @@ def analyze_model_with_shap(model_name):
             'tp_categoria_administrativa': 'object',
             'no_regiao_ies': 'object',
             'igc': 'float64',
-            'taxa_integralizacao': 'float64',
-            'nu_ano_censo': 'int64' # Incluindo nu_ano_censo, se ele estiver nos dados de teste
+            'taxa_integralizacao': 'float64'
         }
         
         # Remove colunas dos dados de teste que não estão no dicionário de target

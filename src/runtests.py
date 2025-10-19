@@ -34,11 +34,11 @@ args = parser.parse_args()
 if args.model == 'RandomForest':
     model = RandomForestRegressor(random_state=42, n_jobs=-1)
     param_grid = {
-        'n_estimators': [200, 300, 400],
-        'max_depth': [10, 20, None],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4],
-        'max_features': ['log2', 'sqrt', None],
+        'n_estimators': [400, 500 , 600],
+        'max_depth': [None],
+        'min_samples_split': [2,3],
+        'min_samples_leaf': [1, 2],
+        'max_features': ['sqrt', None],
         'criterion': ['squared_error']
     }
     param_distributions = {

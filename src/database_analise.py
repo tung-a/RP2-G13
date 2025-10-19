@@ -81,7 +81,8 @@ def create_comparative_charts(target_column):
         'tp_escola_conclusao_ens_medio',
         'tp_grau_academico',
         'no_regiao_ies',
-        'nm_categoria'
+        'nm_categoria',
+        'sigla_uf_curso'
     ]
 
     print(f"\nIniciando geração de {len(features_to_analyze)} gráficos...")
@@ -100,7 +101,12 @@ def create_comparative_charts(target_column):
 
         # Estilo e tamanho da figura
         plt.style.use('seaborn-v0_8-whitegrid')
-        plt.figure(figsize=(14, 8))
+        if feature == 'nm_categoria':
+            # Aumenta significativamente a largura para acomodar os muitos rótulos
+            plt.figure(figsize=(24, 10)) 
+        else:
+            # Tamanho padrão para os outros gráficos
+            plt.figure(figsize=(16, 10))
 
         # Cria o gráfico de barras usando Seaborn
         ax = sns.barplot(
@@ -112,12 +118,17 @@ def create_comparative_charts(target_column):
         )
 
         # Títulos e labels
-        plt.title(f'Análise da Média de "{y_axis_title}" por "{feature}"', fontsize=16, fontweight='bold')
-        plt.ylabel(f'Média de {y_axis_title}', fontsize=12)
-        plt.xlabel(feature, fontsize=12)
+        plt.title(f'Análise da Média de "{y_axis_title}" por "{feature}"', fontsize=18, fontweight='bold')
+        plt.ylabel(f'Média de {y_axis_title}', fontsize=14)
+        plt.xlabel(feature, fontsize=14)
         
         # Ajustes no eixo X para melhor legibilidade
-        plt.xticks(rotation=45, ha='right')
+        if feature in ['nm_categoria', 'sigla_uf_curso']:
+            # Se for uma dessas features com muitos rótulos, diminui a fonte
+            plt.xticks(rotation=45, ha='right', fontsize=8)
+        else:
+            # Mantém o padrão para os outros gráficos
+            plt.xticks(rotation=45, ha='right')
         
         # Adiciona os valores numéricos no topo de cada barra
         for container in ax.containers:
@@ -125,7 +136,7 @@ def create_comparative_charts(target_column):
                 height = p.get_height()
                 if pd.notna(height) and height > 0:
                     ax.text(p.get_x() + p.get_width() / 2., height, f'{height:.2f}', 
-                            ha='center', va='bottom', fontsize=10, color='black')
+                            ha='center', va='bottom', fontsize=12, color='black')
 
         # Layout e salvamento do arquivo
         plt.tight_layout()
@@ -234,9 +245,163 @@ def create_comparative_charts(target_column):
         plt.close()
 
         print(f"-> Gráfico de {plot_type} para '{feature}' salvo em: {plot_path}")
-            
-    print("\n--- Análise concluída com sucesso! ---")
+    
+    print(f"\n--- Gerando Tabela Resumo para Features Categóricas (Alvo: {target_column}) ---")
 
+    # 1. Definir os dados de importância (SHAP) extraídos da imagem
+    # (Feature, Tipo IES): Valor
+    # Nota: Usamos apenas a INTERSECÇÃO entre as features categóricas do script
+    # ('features_to_analyze') e as features da imagem SHAP.
+    
+    # Mapeamento de nomes do script para nomes da imagem:
+    # 'faixa_etaria' -> 'Faixa Etaria'
+    # 'tp_cor_raca' -> 'Tp Cor Raca'
+    # 'tp_escola_conclusao_ens_medio' -> 'Tp Escola Conclusao Ens Medio'
+    # 'tp_sexo' -> 'Tp Sexo'
+    # 'nm_categoria' -> 'Nm Categoria'
+    
+    shap_data = {
+        # ('Feature_Script', 'Tipo IES_Script'): Valor_SHAP_Imagem
+        ('faixa_etaria', 'PUBLICA'): 0.169,
+        ('faixa_etaria', 'PRIVADA'): 0.176,
+        ('tp_cor_raca', 'PUBLICA'): 0.048,
+        ('tp_cor_raca', 'PRIVADA'): 0.069,
+        ('tp_escola_conclusao_ens_medio', 'PUBLICA'): 0.045,
+        ('tp_escola_conclusao_ens_medio', 'PRIVADA'): 0.066,
+        ('tp_sexo', 'PUBLICA'): 0.017,
+        ('tp_sexo', 'PRIVADA'): 0.023,
+        ('nm_categoria', 'PUBLICA'): 0.024,
+        ('nm_categoria', 'PRIVADA'): 0.014,
+        ('sigla_uf_curso', 'PUBLICA'): 0.018, 
+        ('sigla_uf_curso', 'PRIVADA'): 0.021 
+    }
+    
+    # Converte para uma Série pandas com MultiIndex
+    s_shap = pd.Series(shap_data, name='Importancia_SHAP_Agregada')
+    s_shap.index.names = ['Feature', 'Tipo IES']
+
+    # 2. Identificar as features categóricas que temos dados SHAP
+    # Filtra a lista 'features_to_analyze' para conter apenas as que estão em 's_shap'
+    categorical_features_with_shap = [
+        f for f in features_to_analyze if f in s_shap.index.get_level_values('Feature')
+    ]
+
+    # 3. Loop para calcular médias e juntar com dados SHAP
+    all_tables = []
+    for feature in categorical_features_with_shap:
+        if feature not in combined_df.columns:
+            print(f"AVISO: Feature '{feature}' para tabela resumo não encontrada no DataFrame. Pulando.")
+            continue
+            
+        # Calcula a média da variável-alvo por categoria
+        # .dropna() remove categorias nulas (ex: NaN em 'tp_sexo' se houver)
+        df_mean = combined_df.dropna(subset=[feature])\
+                             .groupby(['Tipo IES', feature])[target_column]\
+                             .mean().reset_index()
+        
+        # Renomeia colunas para o relatório final
+        df_mean = df_mean.rename(columns={
+            feature: 'Categoria', 
+            target_column: f'Media_{target_column}'
+        })
+        
+        # Adiciona o nome da feature principal
+        df_mean['Feature'] = feature
+        
+        # Define o mesmo índice que a série SHAP para poder fazer o 'join'
+        df_mean = df_mean.set_index(['Feature', 'Tipo IES'])
+        
+        # Junta a média por categoria com a importância agregada da feature
+        combined_table_feature = df_mean.join(s_shap)
+        
+        all_tables.append(combined_table_feature)
+
+    # 4. Combinar e exibir a tabela final
+    if all_tables:
+        # Concatena todas as tabelas de features (formato longo)
+        final_report_table_long = pd.concat(all_tables).reset_index()
+        
+        print("\n--- Gerando Tabela Resumo Pivotada (Formato Largo) ---")
+
+        # --- INÍCIO DA MODIFICAÇÃO (Pivotar a Tabela) ---
+        
+        # 1. Pivotar a tabela
+        # Index: O que permanece como linha (Feature e sua Categoria)
+        # Columns: O que vai virar coluna (PUBLICA / PRIVADA)
+        # Values: Os valores que serão distribuídos
+        try:
+            pivoted_table = final_report_table_long.pivot_table(
+                index=['Feature', 'Categoria'],
+                columns=['Tipo IES'],
+                values=[f'Media_{target_column}', 'Importancia_SHAP_Agregada']
+            )
+
+            # 2. Achatar os MultiIndex das colunas 
+            # (ex: ('Media_taxa_integralizacao', 'PUBLICA') -> 'Media_taxa_integralizacao_PUBLICA')
+            pivoted_table.columns = [f'{val_col}_{tipo_ies_col}' for val_col, tipo_ies_col in pivoted_table.columns.values]
+
+            # 3. Resetar o índice para que 'Feature' e 'Categoria' voltem a ser colunas
+            final_report_table = pivoted_table.reset_index()
+
+            # 4. (Opcional) Reordenar as colunas para uma melhor visualização (agrupar por métrica)
+            col_media_publica = f'Media_{target_column}_PUBLICA'
+            col_media_privada = f'Media_{target_column}_PRIVADA'
+            col_shap_publica = 'Importancia_SHAP_Agregada_PUBLICA'
+            col_shap_privada = 'Importancia_SHAP_Agregada_PRIVADA'
+
+            # Define a ordem desejada, garantindo que as colunas existam
+            desired_order = ['Feature', 'Categoria']
+            
+            # Adiciona colunas de Média se existirem
+            if col_media_publica in final_report_table.columns:
+                desired_order.append(col_media_publica)
+            if col_media_privada in final_report_table.columns:
+                desired_order.append(col_media_privada)
+                
+            # Adiciona colunas de SHAP se existirem
+            if col_shap_publica in final_report_table.columns:
+                desired_order.append(col_shap_publica)
+            if col_shap_privada in final_report_table.columns:
+                desired_order.append(col_shap_privada)
+                
+            # Captura quaisquer outras colunas (embora não deva haver)
+            other_cols = [c for c in final_report_table.columns if c not in desired_order]
+            
+            final_report_table = final_report_table[desired_order + other_cols]
+
+        except Exception as e:
+            print(f"ERRO ao pivotar a tabela: {e}")
+            print("Continuando com a tabela longa original.")
+            # Fallback para o comportamento antigo se o pivô falhar
+            final_report_table = final_report_table_long.reindex(columns=[
+                'Feature', 
+                'Tipo IES', 
+                'Categoria', 
+                f'Media_{target_column}', 
+                'Importancia_SHAP_Agregada'
+            ])
+            
+        # --- FIM DA MODIFICAÇÃO ---
+        
+        # Ajusta opções do pandas para imprimir a tabela completa
+        pd.set_option('display.max_rows', None)
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.width', 1000)
+        
+        print("\nTabela de Resumo (Importância Agregada vs. Média da Variável Alvo por Categoria):")
+        # Usar to_string() para garantir que tudo seja impresso
+        print(final_report_table.to_string(index=False))
+        
+        # Opcional: Salvar em CSV
+        report_table_path = os.path.join(REPORTS_PATH, f'resumo_categorico_{target_column}.csv')
+        final_report_table.to_csv(report_table_path, index=False, sep=';', decimal=',')
+        print(f"\nTabela de resumo salva em: {report_table_path}")
+        
+    else:
+        print("Nenhuma tabela de resumo foi gerada (nenhuma feature categórica em comum encontrada).")
+
+        
+    print("\n--- Análise concluída com sucesso! ---")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Gera gráficos descritivos comparando IES Públicas e Privadas a partir de arquivos CSV.')

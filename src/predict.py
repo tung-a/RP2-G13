@@ -5,7 +5,8 @@ import itertools
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import argparse # Adicionado para argumentos de linha de comando
+import argparse 
+import shap # Import do SHAP adicionado ao topo
 
 def predict_permanence(student_data, model_name, institution_type):
     """
@@ -22,7 +23,7 @@ def predict_permanence(student_data, model_name, institution_type):
         if os.path.exists(fallback_path):
             model_path = fallback_path
         else:
-             return f"Modelo '{model_name}' para instituição '{institution_type}' não encontrado. Execute o runtests.py ou main.py primeiro."
+            return f"Modelo '{model_name}' para instituição '{institution_type}' não encontrado. Execute o runtests.py ou main.py primeiro."
 
     if not os.path.exists(preprocessor_path):
         return f"Pré-processador para '{institution_type}' não encontrado."
@@ -38,6 +39,7 @@ def predict_permanence(student_data, model_name, institution_type):
 
 def run_and_save_all_scenarios(model_name):
     """
+    (ANÁLISE EXAUSTIVA)
     Gera, testa, compara com o tempo ideal e guarda num CSV todas as combinações
     possíveis de perfis de alunos para um modelo específico.
     """
@@ -68,7 +70,6 @@ def run_and_save_all_scenarios(model_name):
     print(f"Total de cenários a serem calculados: {total_scenarios}")
     results = []
     
-    # NOVO: Contador para a barra de progresso
     count = 0
 
     for combo in all_combinations:
@@ -80,7 +81,6 @@ def run_and_save_all_scenarios(model_name):
                 student_profile[key] = combo[i]
 
             for inst_type, inst_code in [('publica', 1), ('privada', 5)]:
-                # NOVO: Atualiza e exibe o progresso
                 count += 1
                 if count % 1000 == 0 or count == total_scenarios:
                     print(f"  -> Calculando cenário {count} de {total_scenarios}...", end='\r')
@@ -118,7 +118,6 @@ def run_and_save_all_scenarios(model_name):
     
     REPORTS_PATH = 'reports'
     os.makedirs(REPORTS_PATH, exist_ok=True)
-    # Salva o CSV com o nome do modelo para não sobrescrever os resultados
     output_path = os.path.join(REPORTS_PATH, f'prediction_scenarios_{model_name}.csv')
     results_df.to_csv(output_path, index=False)
     
@@ -127,6 +126,7 @@ def run_and_save_all_scenarios(model_name):
 
 def analyze_predictions(csv_path):
     """
+    (ANÁLISE EXAUSTIVA - GRÁFICOS)
     Lê o ficheiro CSV com as previsões, realiza análises e GERA GRÁFICOS para extrair insights.
     """
     if not os.path.exists(csv_path):
@@ -189,17 +189,9 @@ def analyze_predictions(csv_path):
             print(f"\nCenário com MENOR tempo de permanência previsto para IES {inst_type} (Modelo: {model_name}):")
             print(min_pred.to_string())
 
-import joblib
-import pandas as pd
-import os
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-import argparse 
-import shap
-
 def analyze_model_with_shap(model_name):
     """
+    (ANÁLISE SHAP)
     Carrega o modelo e o pré-processador e roda a análise SHAP
     para entender o impacto *real* de TODAS as features.
     """
@@ -209,9 +201,6 @@ def analyze_model_with_shap(model_name):
     REPORTS_PATH = 'reports'
     FIGURES_PATH = os.path.join(REPORTS_PATH, 'figures', 'shap')
     os.makedirs(FIGURES_PATH, exist_ok=True)
-
-    # Lista de colunas para garantir o tipo correto, replicando o preprocessor.py
-    # Assumindo estas colunas com base no preprocessor.py e run_and_save_all_scenarios
     
     for inst_type in ['publica', 'privada']:
         print(f"\nAnalisando modelo para IES: {inst_type.upper()}")
@@ -242,71 +231,43 @@ def analyze_model_with_shap(model_name):
             continue
 
         # --- 3. Pré-processar os Dados de Fundo ---
-        
         X_test_cleaned = X_test.copy()
         
-        # Dicionário do TARGET DTYPES para garantir a coerência
         TARGET_DTYPES = {
-            'tp_cor_raca': 'object',
-            'tp_sexo': 'object',
-            'faixa_etaria': 'float64',
-            'in_financiamento_estudantil': 'float64', # Corrigido para float64
-            'in_apoio_social': 'float64',           # Corrigido para float64
-            'tp_escola_conclusao_ens_medio': 'object',
-            'sigla_uf_curso': 'object',
-            'tp_grau_academico': 'object',
-            'tp_modalidade_ensino': 'object',
-            'nu_carga_horaria': 'int64',              # Corrigido para int64
-            'nm_categoria': 'object',
-            'pib': 'int64',                         # Corrigido para int64
-            'inscritos_por_vaga': 'float64',
-            'duracao_ideal_anos': 'float64',
-            'tp_categoria_administrativa': 'object',
-            'no_regiao_ies': 'object',
-            'igc': 'float64',
-            'taxa_integralizacao': 'float64'
+            'tp_cor_raca': 'object', 'tp_sexo': 'object', 'faixa_etaria': 'float64',
+            'in_financiamento_estudantil': 'float64', 'in_apoio_social': 'float64',
+            'tp_escola_conclusao_ens_medio': 'object', 'sigla_uf_curso': 'object',
+            'tp_grau_academico': 'object', 'tp_modalidade_ensino': 'object',
+            'nu_carga_horaria': 'int64', 'nm_categoria': 'object', 'pib': 'int64',
+            'inscritos_por_vaga': 'float64', 'duracao_ideal_anos': 'float64',
+            'tp_categoria_administrativa': 'object', 'no_regiao_ies': 'object',
+            'igc': 'float64', 'taxa_integralizacao': 'float64'
         }
         
-        # Remove colunas dos dados de teste que não estão no dicionário de target
         X_test_cleaned = X_test_cleaned.loc[:, X_test_cleaned.columns.isin(TARGET_DTYPES.keys())]
-
         print("\nTratando NaN e coerção de tipos...")
         
-        # 2. Garantir que as colunas categóricas sejam 'object' (strings)
         if 'tp_sexo' in X_test_cleaned.columns:
-            # Coerção robusta: mapeia 1 para True, tudo o resto para False, trata NaNs
+            X_test_cleaned['tp_sexo'] = X_test_cleaned['tp_sexo'].astype(object)
             X_test_cleaned.loc[X_test_cleaned['tp_sexo'] == 1, 'tp_sexo'] = True
             X_test_cleaned.loc[X_test_cleaned['tp_sexo'] == 2, 'tp_sexo'] = False
             X_test_cleaned['tp_sexo'] = X_test_cleaned['tp_sexo'].astype(bool)
 
-        # 2. TRATAMENTO GERAL DOS OUTROS TIPOS
         for col, dtype in TARGET_DTYPES.items():
             if col not in X_test_cleaned.columns or col == 'tp_sexo':
-                continue # Já tratamos tp_sexo
+                continue 
 
             if dtype in ['float64', 'int64']:
-                # Numéricas: Tenta converter, coerciona erros (string='erro') para NaN, preenche NaN e aplica o tipo final.
-                
-                # Se for int64, preenche com 0, pois NaNs não são permitidos em int64
                 if dtype == 'int64':
                     X_test_cleaned[col] = pd.to_numeric(X_test_cleaned[col], errors='coerce').fillna(0).astype('int64')
-                
-                # Se for float64, preenche com 0.0
                 elif dtype == 'float64':
                     X_test_cleaned[col] = pd.to_numeric(X_test_cleaned[col], errors='coerce').fillna(0.0).astype('float64')
-
             elif dtype == 'object':
-                # Categóricas/String: Força para string (para evitar problemas de NaN no OHE), preenche '0'
                 X_test_cleaned[col] = X_test_cleaned[col].astype(str).fillna('0').astype('object')
         
-        # ======================== FIM DA CORREÇÃO PARA DTYPES EXATOS =========================
-
         print("Tipos de dados finais (prontos para o preprocessor):")
         print(X_test_cleaned.info())
         
-        # ======================== FIM DA CORREÇÃO =========================
-        
-        # Usa os dados limpos e preenchidos
         print("\nIniciando preprocessor.transform()...")
         X_test_processed = preprocessor.transform(X_test_cleaned)
         print("preprocessor.transform() concluído.")
@@ -317,43 +278,30 @@ def analyze_model_with_shap(model_name):
         else:
              X_test_processed_dense = X_test_processed
 
-        # O SHAP precisa saber os nomes das features DEPOIS do pré-processamento
         try:
-            # Tenta o método padrão para ColumnTransformer
             feature_names = preprocessor.get_feature_names_out()
         except AttributeError:
-             # Fallback: acessa o preprocessor dentro do Pipeline (se for o caso)
-             try:
+            try:
                 feature_names = preprocessor.named_steps['preprocessor'].get_feature_names_out()
-             except Exception:
+            except Exception:
                 print("Aviso: Não foi possível obter nomes de features do preprocessor. Usando nomes originais.")
-                # Usa X_test_cleaned pois é a entrada para o transform
                 feature_names = X_test_cleaned.columns.tolist() 
-            
-        # Garante que o número de colunas bate
+                
         if len(feature_names) != X_test_processed_dense.shape[1]:
              print(f"Alerta: Discrepância de colunas! Nomes: {len(feature_names)}, Processadas: {X_test_processed_dense.shape[1]}")
-             # Tenta usar nomes originais se get_feature_names_out() falhou
              if len(X_test_cleaned.columns) == X_test_processed_dense.shape[1]:
-                 feature_names = X_test_cleaned.columns.tolist()
+                  feature_names = X_test_cleaned.columns.tolist()
              else:
-                 # Se tudo falhar, gera nomes genéricos
-                 feature_names = [f'feature_{i}' for i in range(X_test_processed_dense.shape[1])]
-
+                  feature_names = [f'feature_{i}' for i in range(X_test_processed_dense.shape[1])]
 
         X_test_processed_df = pd.DataFrame(X_test_processed_dense, columns=feature_names)
 
         # --- 4. Calcular e Plotar SHAP ---
-        
-        # A lógica para TreeExplainer vs KernelExplainer é mantida
         if model_name in ['RandomForest', 'LightGBM', 'GradientBoosting']:
             explainer = shap.TreeExplainer(model)
             print("Usando TreeExplainer (Rápido)...")
         else:
             print("Usando KernelExplainer (pode ser lento)...")
-            # Este bloco original do KernelExplainer será mantido caso o modelo não seja de árvore.
-            # A amostragem foi removida pois você não a tinha no código original, 
-            # mas o KernelExplainer continuará lento para o dataset completo.
             def predict_fn(x):
                 if isinstance(x, pd.DataFrame):
                     x = x.values
@@ -364,46 +312,100 @@ def analyze_model_with_shap(model_name):
             X_test_sample = shap.sample(X_test_processed_df, 100 if X_test_processed_df.shape[0] > 100 else X_test_processed_df.shape[0]) 
             explainer = shap.KernelExplainer(predict_fn, X_test_sample)
 
-        print("Calculando valores SHAP... (Isso deve ser rápido com a correção de matriz densa)")
-        # Passa X_test_processed_df para o SHAP
+        print("Calculando valores SHAP...")
         shap_values = explainer.shap_values(X_test_processed_df) 
         print("Valores SHAP calculados.")
 
         # --- Gráfico 1: Summary Plot (Importância Global) ---
-        plt.figure()
-        # Passa X_test_processed_df para o plot
+        plt.figure(figsize=(16, 10))
         shap.summary_plot(shap_values, X_test_processed_df, plot_type="bar", show=False)
         plt.title(f'Importância Global das Features (SHAP) - {inst_type.upper()} ({model_name})')
         plt.tight_layout()
         plot_path = os.path.join(FIGURES_PATH, f'shap_summary_bar_{inst_type}_{model_name}.png')
-        plt.savefig(plot_path)
+        plt.savefig(plot_path, bbox_inches='tight')
         plt.close()
         print(f"-> Gráfico de importância SHAP (bar) salvo em: {plot_path}")
 
         # --- Gráfico 2: Beeswarm Plot (Impacto e Direção) ---
-        plt.figure()
+        plt.figure(figsize=(16, 10))
         shap.summary_plot(shap_values, X_test_processed_df, show=False)
         plt.title(f'Impacto Detalhado das Features (SHAP) - {inst_type.upper()} ({model_name})')
         plt.tight_layout()
         plot_path = os.path.join(FIGURES_PATH, f'shap_summary_beeswarm_{inst_type}_{model_name}.png')
-        plt.savefig(plot_path)
+        plt.savefig(plot_path, bbox_inches='tight')
         plt.close()
         print(f"-> Gráfico de impacto SHAP (beeswarm) salvo em: {plot_path}")
 
+# =============================================================================
+# BLOCO DE EXECUÇÃO PRINCIPAL (MAIN)
+# =============================================================================
 if __name__ == '__main__':
-    # Adiciona argumentos para escolher o modelo
-    parser = argparse.ArgumentParser(description='Gera e analisa cenários de previsão para um modelo específico.')
-    parser.add_argument('--model', type=str, default='RandomForest',
-                        choices=['RandomForest', 'LightGBM', 'GradientBoosting', 'SVR', 'Ridge'],
-                        help='Escolha o modelo para usar nas previsões.')
+    
+    # --- Configuração dos Argumentos ---
+    parser = argparse.ArgumentParser(
+        description='Executa análises de interpretabilidade (SHAP) ou simulação exaustiva de cenários para modelos de previsão de permanência.'
+    )
+    
+    # Argumento 1: Escolha do Modelo
+    parser.add_argument(
+        '--model', 
+        type=str, 
+        default='RandomForest',
+        choices=['RandomForest', 'LightGBM', 'GradientBoosting', 'SVR', 'Ridge'],
+        help='Escolha o modelo base para executar a análise.'
+    )
+    
+    # Argumento 2: Escolha do Tipo de Análise (NOVO AJUSTE)
+    parser.add_argument(
+        '--analysis', 
+        type=str, 
+        default='shap', # Pode mudar o default se preferir
+        choices=['exhaustive', 'shap'],
+        help='Escolha o tipo de análise: "exhaustive" (simula todos os cenários e gera gráficos) ou "shap" (análise de interpretabilidade).'
+    )
+    
     args = parser.parse_args()
 
-    # Roda a análise SHAP
-    analyze_model_with_shap(args.model)
-
-    # Comentei a outra análise para focar na correção do SHAP
-    # print("\nIniciando simulação de cenários...")
-    # scenarios_csv_path = run_and_save_all_scenarios_FAST(args.model) # Assumindo que você renomeou
+    # --- Execução com base nos argumentos ---
     
-    # if scenarios_csv_path:
-    #     analyze_predictions(scenarios_csv_path
+    print(f"==================================================")
+    print(f"Modelo selecionado: {args.model}")
+    print(f"Tipo de análise selecionada: {args.analysis}")
+    print(f"==================================================")
+
+    if args.analysis == 'shap':
+        analyze_model_with_shap(args.model)
+    
+    elif args.analysis == 'exhaustive':
+        # Roda a simulação exaustiva e DEPOIS a análise dos resultados
+        print("\nIniciando simulação de cenários (exaustiva)...")
+        scenarios_csv_path = run_and_save_all_scenarios(args.model)
+        
+        if scenarios_csv_path and os.path.exists(scenarios_csv_path):
+            # Se o CSV foi criado, analisa os resultados
+            analyze_predictions(scenarios_csv_path)
+        else:
+            print("A análise exaustiva não produziu um ficheiro CSV. A análise dos resultados foi pulada.")
+    
+    print("\n--- FIM DA EXECUÇÃO ---")
+
+
+# análise SHAP (SHapley Additive exPlanations) é uma técnica de interpretabilidade de modelos de Machine Learning que busca explicar a contribuição de cada variável (feature) para uma previsão específica.
+
+# Em uma análise SHAP, as variáveis "Feature Value" e "SHAP Value" indicam o seguinte:
+
+# 💡 Feature Value (Valor da Variável)
+# O Feature Value é o valor real que uma variável específica assumiu para a instância (linha de dados, amostra) que está sendo analisada.
+
+# Em outras palavras, é o dado de entrada daquela feature para fazer a previsão.
+
+# Em gráficos SHAP, a cor do ponto costuma representar o Feature Value (por exemplo, vermelho para valores altos da feature e azul para valores baixos).
+
+# 🎯 SHAP Value (Valor SHAP)
+# O SHAP Value representa a contribuição dessa feature (com seu Feature Value específico) para a diferença entre a previsão do modelo para aquela instância e a previsão média (ou valor base) de todas as instâncias.
+
+# Positivo SHAP Value: Indica que o valor da variável contribuiu para aumentar a previsão do modelo em relação ao valor base.
+
+# Negativo SHAP Value: Indica que o valor da variável contribuiu para diminuir a previsão do modelo em relação ao valor base.
+
+# O módulo (valor absoluto) do SHAP Value indica a magnitude da influência. Variáveis com altos valores absolutos são consideradas mais importantes para a previsão daquela instância.

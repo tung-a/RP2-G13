@@ -97,6 +97,76 @@ def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_thre
     
     return X_train_processed, X_test_processed, y_train, y_test, pipeline
 
+def preprocess_for_kmeans(df_pandas: pd.DataFrame):
+    """
+    Prepara um DataFrame Pandas para o Scikit-learn MiniBatchKMeans.
+    1. Aplica One-Hot Encoding em colunas categóricas.
+    2. Aplica StandardScaler em colunas numéricas.
+    3. Retorna um Pandas DataFrame/NumPy Array pronto para o modelo e a lista de features.
+    """
+    # Importar StandardScaler aqui se ainda não estiver no topo
+    from sklearn.preprocessing import StandardScaler
+    
+    print(f"--- Iniciando pré-processamento para K-Means em {len(df_pandas)} registros... ---")
+    
+    # 1. Identificar colunas (MANTENHA ESTA LÓGICA)
+    # Colunas que são numéricas e devem ser escaladas
+    numerical_cols = [
+        'in_apoio_social', 'in_financiamento_estudantil', 'nu_carga_horaria',
+        'pib', 'inscritos_por_vaga', 'duracao_ideal_anos', 'igc', 'taxa_integralizacao'
+    ]
+    
+    # Colunas que são categóricas por natureza
+    categorical_cols = [
+        'nu_ano_censo', 'tp_cor_raca', 'tp_sexo', 'faixa_etaria',
+        'tp_escola_conclusao_ens_medio', 'tp_modalidade_ensino',
+        'tp_grau_academico', 'nm_categoria', 'sigla_uf_curso', 
+        'no_regiao_ies'
+    ]
+    
+    existing_numerical = [col for col in numerical_cols if col in df_pandas.columns]
+    existing_categorical = [col for col in categorical_cols if col in df_pandas.columns]
+
+    print(f"Colunas numéricas para escalar: {existing_numerical}")
+    print(f"Colunas categóricas para One-Hot-Encoding: {existing_categorical}")
+
+    df_to_process = df_pandas.copy()
+
+    # 2. Aplicar Scaling nas numéricas
+    scaler = StandardScaler()
+    scaled_values = scaler.fit_transform(df_to_process[existing_numerical])
+    
+    df_scaled = pd.DataFrame(
+        scaled_values, 
+        columns=existing_numerical, 
+        index=df_to_process.index
+    )
+    
+    # 3. Aplicar One-Hot Encoding
+    for col in existing_categorical:
+        df_to_process[col] = df_to_process[col].astype('category')
+            
+    df_dummies = pd.get_dummies(
+        df_to_process[existing_categorical], 
+        dummy_na=False, 
+        drop_first=False
+    )
+    
+    # 4. Combinar os DataFrames processados
+    df_final_processed = pd.concat([df_scaled, df_dummies], axis=1)
+    
+    # Converter para um tipo numérico compatível com Scikit-learn (float32 é suficiente)
+    df_final_processed = df_final_processed.astype('float32')
+
+    # 5. Retornar os valores NumPy (Array) diretamente, sem Dask.
+    # O MiniBatchKMeans aceita DataFrames, mas o array NumPy é o formato mais universal
+    numpy_array = df_final_processed.values 
+    
+    print(f"Processamento concluído. Forma do array NumPy: {numpy_array.shape}")
+    
+    # Retornar o array NumPy e os nomes das colunas
+    return numpy_array, df_final_processed.columns.tolist()
+
 def save_preprocessor(pipeline, path):
     """Salva o pipeline de pré-processamento."""
     print(f"Salvando o pipeline de pré-processamento em {path}")

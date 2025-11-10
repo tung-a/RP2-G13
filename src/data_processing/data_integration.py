@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import os
 import gc
+from sklearn.preprocessing import StandardScaler
+import dask.array as da
 
 def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     """

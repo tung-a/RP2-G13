@@ -3,8 +3,8 @@ import logging
 import argparse
 import pandas as pd
 from data_processing.data_integration import load_and_integrate_data, split_by_institution_type
-from preprocessing.preprocessor import preprocess_data, save_preprocessor
-from modeling.train import train_model, evaluate_model, save_model
+from preprocessing.preprocessor import preprocess_data, save_preprocessor, preprocess_for_kmeans
+from modeling.train import train_model, evaluate_model, save_model, train_kmeans_model, predict_clusters
 from analysis.regression_analysis import analyze_feature_importance, plot_combined_feature_importance, save_metrics_report, plot_combined_feature_importance_agregada
 # Importa a função de análise do tempo ideal
 from analysis.comparative_analysis import run_ideal_time_analysis
@@ -34,6 +34,13 @@ def parse_args():
         action='store_true',
         help="Desativa a criação de logs (seta o nível para CRITICAL).",
         default=False
+    )
+
+    parser.add_argument(
+        '--k_clusters', 
+        type=int, 
+        default=3,
+        help='Número de clusters (K) para o algoritmo K-Means. Padrão: 3.'
     )
 
     return parser.parse_args()
@@ -129,6 +136,48 @@ def main():
             continue
             
         print(f"\n--- Processando Dados para Instituições do Tipo: {name.upper()} ---")
+
+        logger.info(f"[Clusterização] Iniciando pré-processamento K-Means para '{name}'...")
+        print(f"--- Etapa 3A: Pré-processando dados para K-Means ({name}) ---")
+        
+        try:
+            # 1. Pré-processar para K-Means (One-Hot Encoding, Scaling)
+            # Retorna um Dask Array
+            X_kmeans_dask, kmeans_feature_names = preprocess_for_kmeans(df.copy())
+            
+            # 2. Treinar o modelo K-Means
+            n_clusters = args.k_clusters
+            logger.info(f"[Clusterização] Treinando K-Means (k={n_clusters}) para '{name}'...")
+            print(f"--- Etapa 3B: Treinando K-Means (k={n_clusters}) para '{name}' ---")
+            
+            kmeans_model = train_kmeans_model(X_kmeans_dask, n_clusters, random_state=42)
+            
+            # Salvar o modelo de cluster
+            save_model(kmeans_model, os.path.join(MODELS_PATH, f'kmeans_model_{name}.joblib'))
+            logger.info(f"[Clusterização] Modelo K-Means salvo em 'kmeans_model_{name}.joblib'.")
+
+            # 3. Obter os labels (clusters)
+            logger.info(f"[Clusterização] Prevendo clusters para '{name}'...")
+            # Esta função deve retornar um array NumPy (após .compute())
+            cluster_labels = predict_clusters(kmeans_model, X_kmeans_dask)
+            
+            # 4. Adicionar os labels ao DataFrame original como uma NOVA FEATURE
+            if len(cluster_labels) != len(df):
+                logger.error(f"Discrepância no tamanho dos dados de cluster ({len(cluster_labels)}) e df original ({len(df)}) para '{name}'. Pulando regressão.", exc_info=True)
+                continue
+            
+            # Adiciona a nova feature de cluster
+            df['cluster'] = cluster_labels
+            # Converte para 'category' para que o pré-processador da regressão
+            # trate esta coluna como categórica (e faça One-Hot Encoding nela)
+            df['cluster'] = df['cluster'].astype('category') 
+            
+            logger.info(f"[Clusterização] Feature 'cluster' (k={n_clusters}) adicionada ao DataFrame '{name}'.")
+            print(f"--- Etapa 3C: Feature 'cluster' adicionada ao DataFrame '{name}' ---")
+
+        except Exception as e:
+            logger.error(f"Falha na etapa de CLUSTERIZAÇÃO para '{name}': {e}. Pulando para o próximo dataset.", exc_info=True)
+            continue # Pula para o próximo item (ex: 'privada')
 
         # 4. Pré-processamento 
         X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df,target_column='taxa_integralizacao')

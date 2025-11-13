@@ -1,0 +1,3 @@
+model,dataset,search_method,n_iterations,best_params,best_score,r2_score,mse
+RandomForest,publica,grid,N/A,"{'criterion': 'squared_error', 'max_depth': None, 'max_features': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 500}",-0.06694017418883329,0.7676836016125822,0.04014381341459694
+RandomForest,privada,grid,N/A,"{'criterion': 'squared_error', 'max_depth': None, 'max_features': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 600}",-0.05697859270376166,0.6670774437046536,0.04140838182720822

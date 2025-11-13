@@ -34,11 +34,11 @@ args = parser.parse_args()
 if args.model == 'RandomForest':
     model = RandomForestRegressor(random_state=42, n_jobs=-1)
     param_grid = {
-        'n_estimators': [400, 500 , 600],
-        'max_depth': [None],
-        'min_samples_split': [2,3],
-        'min_samples_leaf': [1, 2],
-        'max_features': ['sqrt', None],
+        'n_estimators': [700],
+        'max_depth': [20, 30],
+        'min_samples_split': [2,5],
+        'min_samples_leaf': [1,3],
+        'max_features': [ 'sqrt', None, 0.5],
         'criterion': ['squared_error']
     }
     param_distributions = {
@@ -113,7 +113,7 @@ for name, df in datasets.items():
     
     if args.method == 'grid':
         print(f"Iniciando GridSearchCV para o modelo {args.model}...")
-        search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='neg_mean_squared_error', n_jobs=-1, verbose=1)
+        search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5, scoring='neg_mean_squared_error', n_jobs=-1, verbose=1)
     else: # random
         print(f"Iniciando RandomizedSearchCV para o modelo {args.model} com {args.n_iter} iterações...")
         search = RandomizedSearchCV(estimator=model, param_distributions=param_distributions, n_iter=args.n_iter, cv=3, scoring='neg_mean_squared_error', n_jobs=-1, random_state=42, verbose=1)

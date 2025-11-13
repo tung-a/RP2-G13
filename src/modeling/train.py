@@ -10,19 +10,32 @@ logger = logging.getLogger(__name__)
 from sklearn.cluster import MiniBatchKMeans
 import dask.array as da
 
-def train_model(X_train, y_train,params= None):
+def train_model(X_train, y_train, params= None, institution_type:str = ''):
     """
     Treina um modelo de regressão.
     """
+    print(institution_type)
     if params is None:
-        params = {
-            'bootstrap': True, 
-            'criterion': 'squared_error',
-            'max_depth': None, 
-            'min_samples_leaf': 1,
-            'min_samples_split': 2,
-            'n_estimators': 400
-        }
+        if institution_type == 'privada':
+            params = {
+                'bootstrap': True, 
+                'criterion': 'squared_error',
+                'max_depth': 100, 
+                'min_samples_leaf': 1,
+                'min_samples_split': 2,
+                'max_features': None,
+                'n_estimators': 600
+            }
+        else:
+            params = {
+                'bootstrap': True, 
+                'criterion': 'squared_error',
+                'max_depth': None, 
+                'min_samples_leaf': 1,
+                'min_samples_split': 2,
+                'max_features': None,
+                'n_estimators': 700
+            }
     
     if 'n_estimators' not in params:
         params['n_estimators'] = 100
@@ -70,7 +83,7 @@ def train_kmeans_model(X_data, n_clusters: int, random_state: int = 42):
     kmeans_model = MiniBatchKMeans(
         n_clusters=n_clusters, 
         random_state=random_state,
-        batch_size=256, # Tamanho do mini-batch. Pode ser ajustado.
+        batch_size=256,
         n_init='auto'
     )
     

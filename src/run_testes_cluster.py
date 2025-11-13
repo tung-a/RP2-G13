@@ -171,7 +171,7 @@ def main():
     parser = argparse.ArgumentParser(description='Busca pelo melhor número de clusters (K) para K-Means.')
     parser.add_argument('--k_min', type=int, default=2,
                         help='Valor mínimo de K (número de clusters) a ser testado. Deve ser >= 2.')
-    parser.add_argument('--k_max', type=int, default=10,
+    parser.add_argument('--k_max', type=int, default=15,
                         help='Valor máximo de K (número de clusters) a ser testado.')
     
     args = parser.parse_args()

@@ -12,16 +12,16 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     duração do curso para garantir a criação correta do 'período ideal'.
     """
 
-    # A coluna categórica do curso pode variar entre CO_CINE_AREA_GERAL	e CO_CINE_AREA_ESPECIFICA
+    # A coluna categórica do curso pode variar entre CO_CINE_AREA_GERAL e CO_CINE_AREA_ESPECIFICA
 
     # 1. Definir as colunas, incluindo as de tempo de integralização
     aluno_cols = [
         'nu_ano_censo', 'nu_ano_ingresso', 'tp_situacao', 'co_ies', 'co_curso',
         'tp_cor_raca', 'tp_sexo', 'faixa_etaria', 'tp_escola_conclusao_ens_medio',
-        'in_apoio_social', 'in_financiamento_estudantil'
+        'in_apoio_social', 'in_financiamento_estudantil', 'tp_modalidade_ensino', 'tp_turno'
     ]
     curso_cols = [
-        'NU_ANO_CENSO', 'CO_IES', 'CO_CURSO', 'TP_MODALIDADE_ENSINO', 'NU_CARGA_HORARIA', 
+        'NU_ANO_CENSO', 'CO_IES', 'CO_CURSO', 'NU_CARGA_HORARIA', 'TP_MODALIDADE_ENSINO', 
         'TP_GRAU_ACADEMICO', 'NU_INTEGRALIZACAO_INTEGRAL', 'NU_INTEGRALIZACAO_MATUTINO', 
         'NU_INTEGRALIZACAO_VESPERTINO', 'NU_INTEGRALIZACAO_NOTURNO', 'NU_INTEGRALIZACAO_EAD',
         'QT_INSCRITO_TOTAL','QT_VAGA_TOTAL','CO_CINE_ROTULO','SIGLA_UF_CURSO'
@@ -47,6 +47,8 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     pib_df = pd.read_csv(os.path.join(data_path, 'ibge', 'pib_tratado.csv'), sep=';', encoding='latin1', usecols=pib_cols)
 
     igc_df = igc_df.rename(columns={'ano': 'nu_ano_censo', 'cod_ies': 'co_ies'})
+
+    alunos_dd = alunos_dd.rename(columns={'tp_modalidade_ensino': 'tp_modalidade_ensino_x'})
 
     print(pib_df)
     # Preparar o DataFrame Pib para merge futuro
@@ -83,7 +85,7 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     print(cursos_df)
     print(cursos_df.dtypes)
 
-    # 3. Criar 'tempo_permanencia' e 'duracao_ideal_anos' (corrigindo o formato decimal)
+    # 3. Criar 'tempo_permanencia' e NORMALIZAR COLUNAS DE INTEGRALIZAÇÃO (sem cálculo de média ainda)
     alunos_dd['tempo_permanencia'] = alunos_dd['nu_ano_censo'] - alunos_dd['nu_ano_ingresso']
     
     integralizacao_cols = [
@@ -98,16 +100,15 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     )
     cursos_df = cursos_df.drop(columns=["QT_INSCRITO_TOTAL","QT_VAGA_TOTAL"])
 
-    # --- CORREÇÃO PRINCIPAL AQUI ---
+    # --- NORMALIZAÇÃO DECIMAL (VÍRGULA PARA PONTO) MANTIDA AQUI ---
     for col in integralizacao_cols:
         # Substitui a vírgula pelo ponto e converte para número
-        cursos_df[col] = cursos_df[col].str.replace(',', '.', regex=False)
+        cursos_df[col] = cursos_df[col].astype(str).str.replace(',', '.', regex=False)
         cursos_df[col] = pd.to_numeric(cursos_df[col], errors='coerce')
         
-    cursos_df['duracao_ideal_anos'] = cursos_df[integralizacao_cols].mean(axis=1)
-    cursos_df.dropna(subset=['duracao_ideal_anos'], inplace=True)
-    cursos_df.drop(columns=integralizacao_cols, inplace=True)
-
+    # **NOTA:** O cálculo de duracao_ideal_anos foi REMOVIDO daqui.
+    # As colunas de integralização (NU_INTEGRALIZACAO_...) permanecem no cursos_df
+    
     # 4. Harmonizar e Juntar os Dados
     cursos_df.columns = [col.lower() for col in cursos_df.columns]
     for df in [alunos_dd, cursos_df, ies_df, igc_df]:
@@ -126,16 +127,87 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     alunos_dd = alunos_dd[alunos_dd['tp_situacao'] == 2]
     alunos_dd = alunos_dd[(alunos_dd['tempo_permanencia'] > 0) & (alunos_dd['tempo_permanencia'] < 20)]
     print("--- Extraindo amostra de 0.5%... ---")
-    alunos_dd = alunos_dd.sample(frac=0.005, random_state=42)
+    alunos_dd = alunos_dd.sample(frac=0.01, random_state=42)
 
     # 6. Merge Final e Limpeza
     print("--- Iniciando merge final com Dask... ---")
+    # O merge agora inclui as colunas de integralização do cursos_ies_df
     final_df_dask = dd.merge(alunos_dd, cursos_ies_df.drop(columns=['nu_ano_censo']), on=['co_curso', 'co_ies'], how='inner')
     
-    final_df_dask['taxa_integralizacao'] = final_df_dask['tempo_permanencia'] / final_df_dask['duracao_ideal_anos']
+    # --- CÁLCULO DE 'duracao_ideal_anos' MOVIDO PARA CÁ (DEPOIS DO MERGE) ---
+    
+    # Mapeamento e cálculo da duração ideal para cursos presenciais (tp_modalidade_ensino == 1)
+    # Nota: Precisamos usar métodos de Dask Array (da.map_blocks com np.select) para operar
+    # em DataFrames Dask, ou garantir que a coluna seja compatível. Usaremos np.select
+    # através da.from_dask_array, operando na representação de Dask.
+    
+    # 1. Calcular 'duracao_presencial' (usando o tp_turno)
+    print("--- Calculando 'duracao_ideal_anos'... ---")
+    print(final_df_dask.columns.tolist())
+    # Lista de colunas de integralização (em minúsculas, como estão no final_df_dask)
+    integralizacao_cols_lower = [col.lower() for col in integralizacao_cols]
+    
+    # Definir uma função que realiza o cálculo usando numpy (para ser aplicada em cada partição)
+    def calcular_duracao_ideal(partition):
+        # partition é um pandas DataFrame (uma partição do Dask DF)
+        partition = partition.copy()
+        # 1. Calcular 'duracao_presencial' (usando o tp_turno)
+        conditions = [
+            partition['tp_turno'] == 1,
+            partition['tp_turno'] == 2,
+            partition['tp_turno'] == 3,
+            partition['tp_turno'] == 4,
+        ]
+        choices = [
+            partition['nu_integralizacao_matutino'],
+            partition['nu_integralizacao_vespertino'],
+            partition['nu_integralizacao_noturno'],
+            partition['nu_integralizacao_integral'],
+        ]
+        
+        # CORREÇÃO 1: Usar .loc para atribuição explícita
+        partition.loc[:, 'duracao_presencial'] = np.select(conditions, choices, default=np.nan)
+        
+        # 2. Aplicar a lógica condicional final (EAD ou Presencial)
+        # CORREÇÃO 2: Usar .loc para atribuição explícita
+        partition.loc[:, 'duracao_ideal_anos'] = np.where(
+            partition['tp_modalidade_ensino_x'] == 2, 
+            partition['nu_integralizacao_ead'],      
+            partition['duracao_presencial']          
+        )
+        
+        # Retornamos apenas a coluna 'duracao_ideal_anos' conforme definido no meta
+        return partition[['duracao_ideal_anos']]
 
-    cols_to_drop = ['tempo_permanencia', 'nu_ano_ingresso', 'tp_situacao', 'co_ies', 'co_curso', 'igc_fx','co_cine_rotulo']
+    # Aplicar a função a todas as partições do Dask DataFrame
+    # Nota: Precisamos incluir todas as colunas de entrada necessárias no meta.
+    
+    # Colunas necessárias no input:
+    required_cols = ['tp_turno', 'tp_modalidade_ensino_x'] + integralizacao_cols_lower
+    
+    # Metadados de saída: apenas a nova coluna e seu dtype
+    meta_output = pd.Series([], dtype='float64', name='duracao_ideal_anos')
+    
+    # Para usar map_partitions, criamos um DF auxiliar com as colunas necessárias
+    duracao_series_dask = final_df_dask[required_cols].map_partitions(
+        calcular_duracao_ideal,
+        meta=pd.DataFrame({'duracao_ideal_anos': meta_output})
+    )['duracao_ideal_anos']
+
+    # Adicionar a Series calculada de volta ao DataFrame principal
+    final_df_dask['duracao_ideal_anos'] = duracao_series_dask
+
+    # Remove colunas de integralização originais
+    final_df_dask = final_df_dask.drop(columns=integralizacao_cols_lower)
+
+    final_df_dask['taxa_integralizacao'] = final_df_dask['tempo_permanencia'] / final_df_dask['duracao_ideal_anos']
+    final_df_dask['taxa_integralizacao'] = (
+    final_df_dask['taxa_integralizacao'].round(4)
+    )
+    
+    cols_to_drop = ['tempo_permanencia', 'tp_modalidade_ensino_x', 'tp_turno', 'nu_ano_ingresso', 'tp_situacao', 'co_ies', 'co_curso', 'igc_fx','co_cine_rotulo']
     final_df_dask = final_df_dask.drop(columns=[col for col in cols_to_drop if col in final_df_dask.columns])
+
 
     print("--- Computando o DataFrame final... ---")
     final_df_pandas = final_df_dask.compute()

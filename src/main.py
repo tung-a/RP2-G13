@@ -8,7 +8,8 @@ from modeling.train import train_model, evaluate_model, save_model, train_kmeans
 from analysis.regression_analysis import analyze_feature_importance, plot_combined_feature_importance, save_metrics_report, plot_combined_feature_importance_agregada
 # Importa a função de análise do tempo ideal
 from analysis.comparative_analysis import run_ideal_time_analysis
-from analysis.cluster_analysis import analyze_cluster_profiles
+# Importações atualizadas para incluir as novas análises de cluster
+from analysis.cluster_analysis import analyze_cluster_profiles, analyze_cluster_drivers, analyze_relative_importance
 from utils.log_config import setup_logging, get_dated_log_filename
 
 LOG_LEVEL = logging.INFO
@@ -164,15 +165,15 @@ def main():
         if not args.skip_clusters:
             try:
                 # 1. Pré-processar para K-Means (One-Hot Encoding, Scaling)
-                # Retorna um Dask Array
-                X_kmeans_dask, kmeans_feature_names = preprocess_for_kmeans(df.copy())
+                # Retorna um array NumPy e a lista de nomes das features
+                X_kmeans_numpy, kmeans_feature_names = preprocess_for_kmeans(df.copy())
                 
                 # 2. Treinar o modelo K-Means
                 n_clusters = k_clusters_map[name]
                 logger.info(f"[Clusterização] Treinando K-Means (k={n_clusters}) para '{name}'...")
                 print(f"--- Etapa 3B: Treinando K-Means (k={n_clusters}) para '{name}' ---")
                 
-                kmeans_model = train_kmeans_model(X_kmeans_dask, n_clusters, random_state=42)
+                kmeans_model = train_kmeans_model(X_kmeans_numpy, n_clusters, random_state=42)
                 
                 # Salvar o modelo de cluster
                 save_model(kmeans_model, os.path.join(MODELS_PATH, f'kmeans_model_{name}.joblib'))
@@ -180,8 +181,7 @@ def main():
 
                 # 3. Obter os labels (clusters)
                 logger.info(f"[Clusterização] Prevendo clusters para '{name}'...")
-                # Esta função deve retornar um array NumPy (após .compute())
-                cluster_labels = predict_clusters(kmeans_model, X_kmeans_dask)
+                cluster_labels = predict_clusters(kmeans_model, X_kmeans_numpy)
                 
                 # 4. Adicionar os labels ao DataFrame original como uma NOVA FEATURE
                 if len(cluster_labels) != len(df):
@@ -197,6 +197,27 @@ def main():
                 logger.info(f"[Clusterização] Feature 'cluster' (k={n_clusters}) adicionada ao DataFrame '{name}'.")
                 print(f"--- Etapa 3C: Feature 'cluster' adicionada ao DataFrame '{name}' ---")
 
+                # --- NOVO: Análise de Drivers dos Clusters (Surrogate Model) ---
+                logger.info(f"[Clusterização] Analisando drivers dos clusters para '{name}'...")
+                analyze_cluster_drivers(
+                    df_processed=X_kmeans_numpy, 
+                    cluster_labels=cluster_labels, 
+                    feature_names=kmeans_feature_names, 
+                    dataset_name=name, 
+                    reports_path=REPORTS_PATH
+                )
+
+                # --- NOVO: Análise de Importância Relativa (Heatmap Z-Score) ---
+                logger.info(f"[Clusterização] Analisando importância relativa (Z-Score) para '{name}'...")
+                numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+                analyze_relative_importance(
+                    df_with_clusters=df,
+                    numeric_cols=numeric_cols,
+                    dataset_name=name,
+                    reports_path=REPORTS_PATH
+                )
+
+                # --- Análise Descritiva Original ---
                 analyze_cluster_profiles(df, name, REPORTS_PATH)
 
             except Exception as e:
@@ -204,11 +225,11 @@ def main():
                 continue # Pula para o próximo item (ex: 'privada')
 
         # 4. Pré-processamento 
-        X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df,target_column='taxa_integralizacao')
+        X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df, target_column='taxa_integralizacao')
         save_preprocessor(preprocessor_pipeline, os.path.join(MODELS_PATH, f'preprocessor_{name}.joblib'))
 
         # 5. Treinamento do Modelo
-        model = train_model(X_train, y_train, institution_type = name)
+        model = train_model(X_train, y_train, institution_type=name)
         save_model(model, os.path.join(MODELS_PATH, f'permanencia_model_{name}.joblib'))
         
         # 6. Avaliação
@@ -217,8 +238,10 @@ def main():
         # 7. Análise de Importância das Features
         datasets_graficos[name] = analyze_feature_importance(model, preprocessor_pipeline, FIGURES_PATH, name)
 
-    plot_combined_feature_importance(datasets_graficos.get('publica'), datasets_graficos.get('privada'), FIGURES_PATH)
-    plot_combined_feature_importance_agregada(datasets_graficos.get('publica'), datasets_graficos.get('privada'), FIGURES_PATH, "RandomForest")
+    # Gera gráficos combinados apenas se ambos os datasets tiverem sido processados com sucesso
+    if 'publica' in datasets_graficos and 'privada' in datasets_graficos:
+        plot_combined_feature_importance(datasets_graficos.get('publica'), datasets_graficos.get('privada'), FIGURES_PATH)
+        plot_combined_feature_importance_agregada(datasets_graficos.get('publica'), datasets_graficos.get('privada'), FIGURES_PATH, "RandomForest")
 
     # 8. Salvar Relatório Final de Métricas
     if 'publica' in metrics and 'privada' in metrics:

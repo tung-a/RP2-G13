@@ -6,3 +6,4 @@ seaborn
 joblib
 dask[dataframe]
 lightgbm
+shap

@@ -2,6 +2,7 @@ import os
 import logging
 import argparse
 import pandas as pd
+import json # <--- Importante
 from data_processing.data_integration import load_and_integrate_data, split_by_institution_type
 from preprocessing.preprocessor import preprocess_data, save_preprocessor, preprocess_for_kmeans
 from modeling.train import train_model, evaluate_model, save_model, train_kmeans_model, predict_clusters
@@ -197,7 +198,7 @@ def main():
                 logger.info(f"[Clusterização] Feature 'cluster' (k={n_clusters}) adicionada ao DataFrame '{name}'.")
                 print(f"--- Etapa 3C: Feature 'cluster' adicionada ao DataFrame '{name}' ---")
 
-                # --- NOVO: Análise de Drivers dos Clusters (Surrogate Model) ---
+                # --- Análise de Drivers dos Clusters (Surrogate Model) ---
                 logger.info(f"[Clusterização] Analisando drivers dos clusters para '{name}'...")
                 analyze_cluster_drivers(
                     df_processed=X_kmeans_numpy, 
@@ -207,7 +208,7 @@ def main():
                     reports_path=REPORTS_PATH
                 )
 
-                # --- NOVO: Análise de Importância Relativa (Heatmap Z-Score) ---
+                # --- Análise de Importância Relativa (Heatmap Z-Score) ---
                 logger.info(f"[Clusterização] Analisando importância relativa (Z-Score) para '{name}'...")
                 numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
                 analyze_relative_importance(
@@ -228,8 +229,26 @@ def main():
         X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df, target_column='taxa_integralizacao')
         save_preprocessor(preprocessor_pipeline, os.path.join(MODELS_PATH, f'preprocessor_{name}.joblib'))
 
-        # 5. Treinamento do Modelo
-        model = train_model(X_train, y_train, institution_type=name)
+        # 5. Treinamento do Modelo (Carregamento de Parâmetros Otimizados)
+        # -------------------------------------------------------------------------
+        params = None
+        # Tenta carregar os melhores parâmetros do ficheiro JSON se ele existir
+        # Assume que estamos a usar RandomForest por defeito no main.py
+        best_params_path = os.path.join(REPORTS_PATH, f'best_params_RandomForest_{name}.json')
+        
+        if os.path.exists(best_params_path):
+            try:
+                with open(best_params_path, 'r') as f:
+                    params = json.load(f)
+                logger.info(f"Carregados parâmetros otimizados para '{name}' de: {best_params_path}")
+                print(f"-> Usando hiperparâmetros otimizados: {params}")
+            except Exception as e:
+                logger.warning(f"Erro ao carregar JSON de parâmetros para '{name}': {e}. Usando padrão.")
+        else:
+            logger.info(f"Arquivo de parâmetros otimizados não encontrado ({best_params_path}). Usando padrão.")
+        # -------------------------------------------------------------------------
+
+        model = train_model(X_train, y_train, params=params, institution_type=name)
         save_model(model, os.path.join(MODELS_PATH, f'permanencia_model_{name}.joblib'))
         
         # 6. Avaliação

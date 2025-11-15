@@ -3,23 +3,23 @@ Regras de Decisão Simplificadas para Clusters - PRIVADA
 
 |--- pib <= 0.42
 |   |--- in_financiamento_estudantil <= 0.06
-|   |   |--- nu_carga_horaria <= -0.10
-|   |   |   |--- class: 2
-|   |   |--- nu_carga_horaria >  -0.10
+|   |   |--- taxa_integralizacao <= 0.94
 |   |   |   |--- class: 3
-|   |--- in_financiamento_estudantil >  0.06
-|   |   |--- duracao_ideal_anos <= -1.51
+|   |   |--- taxa_integralizacao >  0.94
 |   |   |   |--- class: 4
-|   |   |--- duracao_ideal_anos >  -1.51
+|   |--- in_financiamento_estudantil >  0.06
+|   |   |--- inscritos_por_vaga <= 0.54
 |   |   |   |--- class: 0
+|   |   |--- inscritos_por_vaga >  0.54
+|   |   |   |--- class: 6
 |--- pib >  0.42
 |   |--- duracao_ideal_anos <= -1.51
-|   |   |--- nu_carga_horaria <= -0.54
+|   |   |--- taxa_integralizacao <= 3.24
+|   |   |   |--- class: 2
+|   |   |--- taxa_integralizacao >  3.24
 |   |   |   |--- class: 4
-|   |   |--- nu_carga_horaria >  -0.54
-|   |   |   |--- class: 1
 |   |--- duracao_ideal_anos >  -1.51
-|   |   |--- nu_carga_horaria <= 3.36
+|   |   |--- taxa_integralizacao <= 2.05
 |   |   |   |--- class: 1
-|   |   |--- nu_carga_horaria >  3.36
-|   |   |   |--- class: 3
+|   |   |--- taxa_integralizacao >  2.05
+|   |   |   |--- class: 4

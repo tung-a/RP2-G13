@@ -1,6 +1,7 @@
 import os
 import argparse
 import pandas as pd
+import json  # <--- Adicionado
 from datetime import datetime
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.svm import SVR
@@ -104,6 +105,9 @@ elif args.model == 'Ridge':
 # Lista para armazenar os resultados
 all_results = []
 
+REPORTS_PATH = 'reports' # Movido para cima para uso no loop
+os.makedirs(REPORTS_PATH, exist_ok=True)
+
 for name, df in datasets.items():
     if df.empty:
         print(f"\n--- DataFrame '{name}' está vazio. Pulando treinamento. ---")
@@ -123,6 +127,18 @@ for name, df in datasets.items():
     
     best_model = search.best_estimator_
     print(f"Melhores hiperparâmetros: {search.best_params_}")
+
+    # --- NOVO: Salvar os melhores parâmetros em JSON para uso no main.py ---
+    best_params_path = os.path.join(REPORTS_PATH, f'best_params_{args.model}_{name}.json')
+    try:
+        # Converte valores numpy para tipos nativos do Python para serialização JSON
+        params_to_save = {k: (v.item() if hasattr(v, 'item') else v) for k, v in search.best_params_.items()}
+        with open(best_params_path, 'w') as f:
+            json.dump(params_to_save, f, indent=4)
+        print(f"-> Parâmetros otimizados exportados para: {best_params_path}")
+    except Exception as e:
+        print(f"Erro ao salvar JSON de parâmetros: {e}")
+    # -----------------------------------------------------------------------
 
     metrics = evaluate_model(best_model, X_test, y_test)
     
@@ -146,8 +162,6 @@ for name, df in datasets.items():
     print(f"Melhor modelo salvo em: {model_path}")
 
 # Salva o resumo .csv na pasta 'reports'
-REPORTS_PATH = 'reports'
-os.makedirs(REPORTS_PATH, exist_ok=True)
 timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 results_df = pd.DataFrame(all_results)
 results_csv_path = os.path.join(REPORTS_PATH, f'model_performance_summary_{timestamp}.csv')

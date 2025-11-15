@@ -1,93 +1,85 @@
 feature,importance
-in_financiamento_estudantil,0.21415963393837995
-sigla_uf_curso_SP,0.15526214720214288
-pib,0.1523213692578699
-duracao_ideal_anos,0.08620588970850093
-taxa_integralizacao,0.07232323631649194
-in_apoio_social,0.05457348477380956
-no_regiao_ies_Sudeste,0.04837156203056147
-inscritos_por_vaga,0.04725987451729736
-nu_carga_horaria,0.04559723160840369
-tp_grau_academico_3,0.030002604830542647
-tp_grau_academico_1,0.01910476082639591
-igc,0.010479171910304542
-sigla_uf_curso_MG,0.008416507749239202
-no_regiao_ies_Nordeste,0.006929095642692705
-sigla_uf_curso_RJ,0.00583223537170837
-no_regiao_ies_Sul,0.004882925287944479
-nm_categoria_Serviços,0.0036081195825693755
-tp_escola_conclusao_ens_medio_1.0,0.0025940500886852936
-tp_grau_academico_2,0.002410247088698085
-no_regiao_ies_Centro_Oeste,0.0021466653303303723
-nm_categoria_Saúde e bem-estar,0.0021372227133924842
-sigla_uf_curso_MT,0.002031993446746246
-"nm_categoria_Negócios, administração e direito",0.0015684787133855098
-nm_categoria_Educação,0.0015616180907024998
-faixa_etaria_2.0,0.00152075163587452
-sigla_uf_curso_RS,0.0013086139493979814
-tp_escola_conclusao_ens_medio_9.0,0.0012837337833099998
-"nm_categoria_Engenharia, produção e construção",0.0011774626310199336
-no_regiao_ies_Norte,0.0011429579179124008
-sigla_uf_curso_ES,0.0009790587201663867
-tp_escola_conclusao_ens_medio_2.0,0.0008077040294189151
-nm_categoria_Computação e Tecnologias da Informação e Comunicação (TIC),0.0007990369813538513
-sigla_uf_curso_PR,0.0007921724936655176
-nu_ano_censo_2010,0.000756188922844588
-sigla_uf_curso_BA,0.0006834077943028709
-tp_cor_raca_0.0,0.0005720111060370633
-tp_cor_raca_1.0,0.0005353839786289032
-sigla_uf_curso_GO,0.0005174989327454971
-sigla_uf_curso_SC,0.0005126536406817265
-tp_cor_raca_3.0,0.00046030283947498345
-sigla_uf_curso_PA,0.0004274695439862195
-tp_cor_raca_9.0,0.0003869084713632697
-sigla_uf_curso_PE,0.0003765726721321919
-nu_ano_censo_2011,0.0003540428336934872
-nm_categoria_Artes e humanidades,0.0003445628786759068
-tp_sexo_1.0,0.000319375271984859
-faixa_etaria_4.0,0.0002986951451818197
-sigla_uf_curso_DF,0.00027529661331239784
-tp_grau_academico_5,0.0002694048029070745
-tp_sexo_2.0,0.0002580445705313191
-sigla_uf_curso_MA,0.00025761836950764555
-sigla_uf_curso_MS,0.0002417733154590007
-nu_ano_censo_2012,0.00020914276650852627
-sigla_uf_curso_CE,0.00017158791562166387
-faixa_etaria_3.0,0.000162839166395574
-sigla_uf_curso_AM,0.00014877393483037922
-"nm_categoria_Ciências sociais, comunicação e informação",0.0001399762371279906
-nu_ano_censo_2017,0.00013239793414646835
-sigla_uf_curso_RN,0.00012456177011084483
-nu_ano_censo_2013,0.00011913289621863594
-sigla_uf_curso_PB,0.0001149415091165064
-nu_ano_censo_2014,0.00010861900347780149
-sigla_uf_curso_AP,0.00010410101169895406
-nu_ano_censo_2015,9.988984133867357e-05
-faixa_etaria_5.0,9.32070234555589e-05
-nu_ano_censo_2016,8.085763028387833e-05
-tp_cor_raca_2.0,7.785382449229092e-05
-sigla_uf_curso_PI,7.709814583454846e-05
-nu_ano_censo_2018,7.691296972489144e-05
-nu_ano_censo_2019,7.270547441682964e-05
-"nm_categoria_Agricultura, silvicultura, pesca e veterinária",6.076569766207997e-05
-sigla_uf_curso_SE,5.7434308614088284e-05
-faixa_etaria_6.0,5.7338568389131096e-05
-faixa_etaria_7.0,3.86381100634584e-05
-faixa_etaria_8.0,3.534268006911561e-05
-sigla_uf_curso_RO,3.358071001116572e-05
-tp_cor_raca_4.0,2.5934730101667525e-05
-faixa_etaria_9.0,2.1192226614127067e-05
-"nm_categoria_Ciências naturais, matemática e estatística",1.7846587408027718e-05
-sigla_uf_curso_AL,1.752799111793467e-05
-faixa_etaria_10.0,1.4883558422979573e-05
-faixa_etaria_11.0,1.4611219717413547e-05
-sigla_uf_curso_TO,1.2253256963682945e-05
-tp_cor_raca_5.0,1.084605417927446e-05
-faixa_etaria_12.0,1.0152137309964157e-05
-faixa_etaria_13.0,7.324544246498059e-06
-sigla_uf_curso_AC,3.6383811616612095e-06
-faixa_etaria_14.0,3.6200089696506474e-06
-sigla_uf_curso_RR,1.7140074475034703e-06
-nm_categoria_Programas básicos,1.6236451473926563e-06
-faixa_etaria_1.0,3.0264921749036245e-07
+pib,0.3653428127238601
+sigla_uf_curso_SP,0.35357761921445374
+no_regiao_ies_Sudeste,0.11056444723804267
+sigla_uf_curso_MG,0.03537786476962025
+no_regiao_ies_Nordeste,0.032315792449660256
+sigla_uf_curso_RJ,0.0176534059554826
+no_regiao_ies_Sul,0.016196400234668108
+inscritos_por_vaga,0.010523739602643816
+duracao_ideal_anos,0.008730842700135074
+no_regiao_ies_Centro_Oeste,0.006282158523781461
+igc,0.006188873698757949
+no_regiao_ies_Norte,0.004742618013482346
+sigla_uf_curso_ES,0.003963448483480373
+sigla_uf_curso_PR,0.0031498412892500957
+in_financiamento_estudantil,0.002386893367538378
+sigla_uf_curso_BA,0.002328388725911241
+tp_cor_raca_3.0,0.0021382110027549405
+tp_cor_raca_1.0,0.0017237065077894437
+sigla_uf_curso_RS,0.0016219881685956496
+sigla_uf_curso_PE,0.001438636712121586
+nu_carga_horaria,0.0014382565316380142
+sigla_uf_curso_DF,0.0013899033248476564
+tp_escola_conclusao_ens_medio_1.0,0.0013533525997977346
+taxa_integralizacao,0.0012546598340775555
+sigla_uf_curso_CE,0.0012022349750926708
+sigla_uf_curso_GO,0.0011110410449345677
+sigla_uf_curso_SC,0.0010312251181539885
+tp_escola_conclusao_ens_medio_2.0,0.0010084728933398898
+nm_categoria_Saúde e bem-estar,0.0005138037403007788
+sigla_uf_curso_MA,0.0004861654128293008
+sigla_uf_curso_MT,0.00042957934334217574
+sigla_uf_curso_PB,0.00030558351825414127
+tp_cor_raca_0.0,0.00028665828199630247
+sigla_uf_curso_AM,0.00025350956431277025
+sigla_uf_curso_PA,0.00021273994425496332
+sigla_uf_curso_MS,0.0001422763920717209
+nm_categoria_Educação,0.00012992261014085479
+tp_grau_academico_1,0.00012225164845083882
+sigla_uf_curso_AL,0.00011895746033724554
+faixa_etaria_2.0,0.00010634100346250867
+tp_cor_raca_2.0,9.118239654139538e-05
+sigla_uf_curso_TO,8.686286494089081e-05
+tp_grau_academico_2,7.156411828740294e-05
+tp_grau_academico_3,6.767853992390651e-05
+sigla_uf_curso_PI,6.327996167096494e-05
+sigla_uf_curso_AC,4.015100036839636e-05
+"nm_categoria_Engenharia, produção e construção",3.6801380321416845e-05
+tp_escola_conclusao_ens_medio_9.0,3.504339513681298e-05
+in_apoio_social,3.3565653427698114e-05
+faixa_etaria_3.0,3.07207234821107e-05
+nm_categoria_Artes e humanidades,3.029028655404357e-05
+"nm_categoria_Negócios, administração e direito",2.6708205060437227e-05
+tp_sexo_2.0,2.6149922314055045e-05
+faixa_etaria_7.0,2.4133555790136676e-05
+tp_sexo_1.0,1.8088185024220517e-05
+tp_cor_raca_5.0,1.7475650658692826e-05
+sigla_uf_curso_AP,1.691835316437378e-05
+nu_ano_censo_2019,1.3121368444617349e-05
+faixa_etaria_5.0,1.2812261368300157e-05
+nu_ano_censo_2018,1.2491163086979657e-05
+"nm_categoria_Agricultura, silvicultura, pesca e veterinária",1.1855018845010224e-05
+"nm_categoria_Ciências sociais, comunicação e informação",1.1771559704366758e-05
+faixa_etaria_6.0,1.1252184230180883e-05
+faixa_etaria_10.0,1.1042024214330255e-05
+faixa_etaria_8.0,1.0318218566155643e-05
+sigla_uf_curso_RO,9.242902136919135e-06
+tp_grau_academico_4,7.814040379400495e-06
+"nm_categoria_Ciências naturais, matemática e estatística",7.4489941938151e-06
+nm_categoria_Serviços,5.752915799931248e-06
+faixa_etaria_4.0,5.670397851863354e-06
+faixa_etaria_9.0,2.6398570635418395e-06
+faixa_etaria_12.0,2.442229059688711e-06
+faixa_etaria_14.0,9.98328875814713e-07
+tp_cor_raca_9.0,7.462304972416294e-07
+sigla_uf_curso_SE,4.626441544110079e-07
+faixa_etaria_11.0,4.3929671224250295e-07
+nm_categoria_Computação e Tecnologias da Informação e Comunicação (TIC),2.414479033088898e-07
+tp_cor_raca_4.0,9.257983744966687e-08
+faixa_etaria_13.0,6.037984122680532e-08
+sigla_uf_curso_RR,4.514090063245839e-08
+sigla_uf_curso_RN,0.0
+faixa_etaria_1.0,0.0
 tp_modalidade_ensino_1,0.0
+tp_grau_academico_5,0.0

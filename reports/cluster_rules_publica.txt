@@ -1,7 +1,13 @@
 Regras de Decisão Simplificadas para Clusters - PUBLICA
 ================================================================================
 
-|--- pib <= 0.99
-|   |--- class: 1
-|--- pib >  0.99
+|--- sigla_uf_curso_SP <= 0.50
+|   |--- in_financiamento_estudantil <= -2.05
+|   |   |--- class: 0
+|   |--- in_financiamento_estudantil >  -2.05
+|   |   |--- nu_carga_horaria <= 3.04
+|   |   |   |--- class: 1
+|   |   |--- nu_carga_horaria >  3.04
+|   |   |   |--- class: 0
+|--- sigla_uf_curso_SP >  0.50
 |   |--- class: 0

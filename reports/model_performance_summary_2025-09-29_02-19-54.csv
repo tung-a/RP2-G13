@@ -1,3 +1,0 @@
-model,dataset,search_method,n_iterations,best_params,best_score,r2_score,mse
-LightGBM,publica,random,20,"{'learning_rate': np.float64(0.014789875666064259), 'max_depth': -1, 'n_estimators': 439, 'num_leaves': 111}",-2.185580172135571,0.278332320808795,2.213237732122861
-LightGBM,privada,random,20,"{'learning_rate': np.float64(0.05679835610086079), 'max_depth': 10, 'n_estimators': 187, 'num_leaves': 136}",-1.6692081319216905,0.1971203601140391,1.6322706732043886

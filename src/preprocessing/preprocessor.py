@@ -1,10 +1,15 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 import joblib
 import os
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 def preprocess_data(df, target_column='tempo_permanencia', high_cardinality_threshold=50):
     """
@@ -166,6 +171,56 @@ def preprocess_for_kmeans(df_pandas: pd.DataFrame):
     
     # Retornar o array NumPy e os nomes das colunas
     return numpy_array, df_final_processed.columns.tolist()
+
+def preparar_dados_para_kprototypes(df,colunas_categoricas):
+    """
+    Prepara um DataFrame para o K-Prototypes, forçando colunas
+    conhecidas a serem tratadas como categóricas.
+    """
+    df_prep = df.copy()
+
+    # 1. FORÇAR A CONVERSÃO: Aplica a conversão na cópia (df_prep)
+    print("Forçando colunas conhecidas para 'category' em df_prep...")
+    for col in colunas_categoricas:
+        if col in df_prep.columns:
+            df_prep[col] = df_prep[col].astype('category')
+        else:
+            # Não é um erro grave, apenas um aviso
+            logger.warning(f"Aviso: Coluna '{col}' não encontrada no DataFrame e será ignorada.")
+            
+    # 2. Identificar colunas numéricas e categóricas 
+    num_cols = df_prep.select_dtypes(include=np.number).columns.tolist()
+    cat_cols = df_prep.select_dtypes(include=['object', 'category']).columns.tolist()
+    
+    # 3. Lidar com Valores Ausentes (Imputação Simples)
+    for col in num_cols:
+        median = df_prep[col].median()
+        df_prep[col] = df_prep[col].fillna(median)
+        
+    for col in cat_cols:
+        mode = df_prep[col].mode()[0]
+        df_prep[col] = df_prep[col].fillna(mode)
+    
+    if len(num_cols) > 0:
+        scaler = StandardScaler()
+        df_prep[num_cols] = scaler.fit_transform(df_prep[num_cols])
+    
+    df_features_for_drivers = df_prep[num_cols + cat_cols].copy()
+    
+    # 6. Obter os índices das colunas categóricas no data_matrix FINAL
+    final_cols_order = num_cols + cat_cols
+
+    df_final_matrix = df_prep[final_cols_order]
+
+    # Os índices categóricos são a partir do final das colunas numéricas
+    cat_indices = [df_final_matrix.columns.get_loc(c) for c in cat_cols]
+    data_matrix = df_final_matrix.values
+    
+    logger.info(f"Colunas numéricas (padronizadas): {list(num_cols)}")
+    logger.info(f"Colunas categóricas (usadas como rótulos): {list(cat_cols)}")
+    logger.info(f"Índices das colunas categóricas: {cat_indices}")
+    
+    return data_matrix, cat_indices, df_features_for_drivers
 
 def save_preprocessor(pipeline, path):
     """Salva o pipeline de pré-processamento."""

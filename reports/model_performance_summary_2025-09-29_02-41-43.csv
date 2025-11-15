@@ -1,3 +1,0 @@
-model,dataset,search_method,n_iterations,best_params,best_score,r2_score,mse
-GradientBoosting,publica,random,20,"{'learning_rate': np.float64(0.0823076398078035), 'max_depth': 6, 'n_estimators': 363}",-2.214814844109801,0.2760387561819956,2.2202717228632856
-GradientBoosting,privada,random,20,"{'learning_rate': np.float64(0.0823076398078035), 'max_depth': 6, 'n_estimators': 363}",-1.6804703236014518,0.19580548499041095,1.6349438411321853

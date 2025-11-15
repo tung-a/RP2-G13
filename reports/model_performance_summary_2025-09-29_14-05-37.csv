@@ -1,3 +1,0 @@
-model,dataset,search_method,n_iterations,best_params,best_score,r2_score,mse
-Ridge,publica,grid,N/A,"{'alpha': 10.0, 'solver': 'auto'}",-2.704014878889108,0.11337165350738487,2.7191453454398684
-Ridge,privada,grid,N/A,"{'alpha': 10.0, 'solver': 'lsqr'}",-1.8880173201895953,0.08088171816000611,1.8685862016211043

@@ -1,0 +1,3 @@
+cluster,nu_ano_censo,tp_cor_raca,tp_sexo,in_financiamento_estudantil,in_apoio_social,tp_escola_conclusao_ens_medio,tp_grau_academico,tp_modalidade_ensino,tp_categoria_administrativa,sigla_uf_curso,nm_categoria,no_regiao_ies
+0,2018,1.0,1.0,0.0,0.0,1.0,1,1,6,SP,"Negócios, administração e direito",Sudeste
+1,2018,1.0,1.0,1.0,0.0,1.0,1,1,6,MG,"Negócios, administração e direito",Sudeste

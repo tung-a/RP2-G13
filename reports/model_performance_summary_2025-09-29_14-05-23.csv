@@ -1,3 +1,0 @@
-model,dataset,search_method,n_iterations,best_params,best_score,r2_score,mse
-SVR,publica,random,20,"{'C': np.float64(3.845401188473625), 'epsilon': np.float64(0.5253571532049581), 'kernel': 'rbf'}",-2.373220565182917,0.2238582275128611,2.3803009416611647
-SVR,privada,random,20,"{'C': np.float64(3.845401188473625), 'epsilon': np.float64(0.5253571532049581), 'kernel': 'rbf'}",-1.7929054615203135,0.1341111514812211,1.760369678688914

@@ -1,4 +1,5 @@
 from sklearn.ensemble import RandomForestRegressor
+from kmodes.kprototypes import KPrototypes
 from sklearn.metrics import mean_squared_error, r2_score
 import pandas as pd
 import numpy as np
@@ -92,6 +93,25 @@ def train_kmeans_model(X_data, n_clusters: int, random_state: int = 42):
     
     logger.info("Treinamento do MiniBatchKMeans concluído.")
     return kmeans_model
+
+def train_kprototypes(data_matrix, cat_indices, n_clusters, random_state: int = 42):
+    """
+    Roda o algoritmo K-Prototypes nos dados preparados.
+    """
+    print(f"\nIniciando K-Prototypes com {n_clusters} clusters...")
+    
+    kproto = KPrototypes(n_clusters=n_clusters, 
+                         init='Cao', 
+                         n_init=10, 
+                         verbose=0,
+                         n_jobs=-1,
+                         random_state= random_state)
+    
+    clusters = kproto.fit_predict(data_matrix, categorical=cat_indices)
+    
+    print("Clusterização concluída.")
+    
+    return kproto, clusters
 
 def predict_clusters(model: MiniBatchKMeans, X_data) -> np.ndarray:
     """

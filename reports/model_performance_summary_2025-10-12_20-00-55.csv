@@ -1,3 +1,0 @@
-model,dataset,search_method,n_iterations,best_params,best_score,r2_score,mse
-RandomForest,publica,grid,N/A,"{'max_depth': 20, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 200}",-1.5580641284026562,0.6415315106799493,1.2264999597915882
-RandomForest,privada,grid,N/A,"{'max_depth': 20, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 200}",-1.527063426538712,0.35491458572018497,1.391107476895414

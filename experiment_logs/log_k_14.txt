@@ -1,0 +1,380 @@
+Comando executado: C:\Users\ktama\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe c:\Users\ktama\OneDrive\Área de Trabalho\Lanem\RP2\RP2-G13\RP2-G13\src\main.py -s --k_privada 14 --k_publica 14
+Iniciado em: 2025-11-15 13:00:39
+================================================================================
+
+--- SAÍDA PADRÃO (STDOUT) ---
+
+--- Iniciando Etapa 1: Carregando DataFrames de Amostra (CSV) ---
+AVISO: As colunas 'duracao_ideal_anos' ou 'tempo_permanencia' n�o foram encontradas para a an�lise comparativa.
+
+--- Processando Dados para Institui��es do Tipo: PUBLICA ---
+--- Etapa 3A: Pr�-processando dados para K-Prototypes (publica) ---
+For�ando colunas conhecidas para 'category' em df_prep...
+--- Etapa 3B: Treinando K-Prototypes (k=14) para 'publica' ---
+
+Iniciando K-Prototypes com 14 clusters...
+Clusteriza��o conclu�da.
+Salvando modelo em models\kmeans_model_publica.joblib
+--- Etapa 3C: Feature 'cluster' adicionada ao DataFrame 'publica' ---
+
+--- Analisando Vari�veis Discriminantes (Drivers) dos Clusters (publica) ---
+Treinando Random Forest para Feature Importance...
+Tabela de import�ncia dos drivers salva em: reports\clustering\publica\cluster_drivers_importance_publica.csv
+Gr�fico de drivers salvo em: reports\clustering\publica\figures\cluster_drivers_plot_publica.png
+Gerando regras de decis�o simples (Decision Tree)...
+Regras de decis�o (texto) salvas em: reports\clustering\publica\cluster_rules_publica.txt
+
+--- Analisando Import�ncia Relativa (Z-Score) - PUBLICA ---
+Heatmap AGREGADO de import�ncia relativa salvo em: reports\clustering\publica\figures\cluster_heatmap_relative_aggregated_publica.png
+Heatmap DETALHADO de import�ncia relativa salvo em: reports\clustering\publica\figures\cluster_heatmap_relative_detailed_publica.png
+--- Etapa 3D: Analisando Perfil dos Clusters (publica) ---
+
+Distribui��o dos Clusters (publica):
+cluster
+0     2176
+1     3091
+2     4806
+3     1180
+4     1461
+5      420
+6     3535
+7     2472
+8     5425
+9     2817
+10    6281
+11    4554
+12    1490
+13    3904
+Name: count, dtype: int64
+
+--- Perfil Num�rico (M�dias) dos Clusters (publica) ---
+              igc           pib  ...  duracao_ideal_anos  faixa_etaria
+cluster                          ...                                  
+0        4.158328  2.348211e+09  ...            4.805147      2.880515
+1        2.761293  2.348293e+09  ...            4.377709      3.169524
+2        3.607379  4.166505e+08  ...            4.849771      2.825010
+3        3.386964  4.182955e+08  ...            7.313559      3.044068
+4        3.387562  4.375972e+08  ...            4.631075      9.276523
+5        3.359063  1.020181e+09  ...            5.904762      3.135714
+6        3.598657  2.767937e+08  ...            3.776662      3.048939
+7        3.369808  3.019912e+08  ...            4.745752      3.053398
+8        3.825528  5.995947e+08  ...            4.533641      2.769401
+9        2.955489  2.107286e+08  ...            4.100639      5.464679
+10       2.792769  2.051938e+08  ...            4.464576      2.665340
+11       3.740541  3.774792e+08  ...            8.972552      2.799736
+12       3.190497  2.457484e+08  ...            8.476510      6.427517
+13       2.846163  1.826828e+08  ...            8.553023      2.849129
+
+[14 rows x 7 columns]
+
+--- Perfil Categ�rico (Moda) dos Clusters (publica) ---
+         nu_ano_censo  ...  no_regiao_ies
+cluster                ...               
+0                2019  ...        Sudeste
+1                2019  ...        Sudeste
+2                2018  ...            Sul
+3                2019  ...       Nordeste
+4                2018  ...       Nordeste
+5                2018  ...        Sudeste
+6                2018  ...       Nordeste
+7                2018  ...       Nordeste
+8                2019  ...        Sudeste
+9                2019  ...       Nordeste
+10               2019  ...       Nordeste
+11               2019  ...            Sul
+12               2018  ...       Nordeste
+13               2018  ...       Nordeste
+
+[14 rows x 12 columns]
+--- An�lise de Perfil (publica) conclu�da. Relat�rios salvos em 'reports\clustering\publica' ---
+tp_cor_raca                        object
+tp_sexo                              bool
+faixa_etaria                      float64
+in_financiamento_estudantil       float64
+in_apoio_social                   float64
+tp_escola_conclusao_ens_medio      object
+sigla_uf_curso                     object
+tp_grau_academico                  object
+tp_modalidade_ensino               object
+nu_carga_horaria                    int64
+nm_categoria                       object
+pib                                 int64
+inscritos_por_vaga                float64
+tp_categoria_administrativa        object
+no_regiao_ies                      object
+igc                               float64
+duracao_ideal_anos                float64
+taxa_integralizacao               float64
+cluster                          category
+dtype: object
+Colunas num�ricas identificadas: ['tp_sexo', 'faixa_etaria', 'in_financiamento_estudantil', 'in_apoio_social', 'nu_carga_horaria', 'pib', 'inscritos_por_vaga', 'igc', 'duracao_ideal_anos']
+Colunas categ�ricas identificadas (baixa cardinalidade): ['tp_cor_raca', 'tp_escola_conclusao_ens_medio', 'sigla_uf_curso', 'tp_grau_academico', 'tp_modalidade_ensino', 'nm_categoria', 'tp_categoria_administrativa', 'no_regiao_ies', 'cluster']
+Colunas categ�ricas descartadas (alta cardinalidade): []
+
+--- Divis�o Treino/Teste ---
+Total de amostras restantes: 21853
+Amostras para Treinamento (80%): 17482
+Amostras para Teste (20%): 4371
+Pr�-processamento conclu�do.
+Salvando o pipeline de pr�-processamento em models\preprocessor_publica.joblib
+publica
+Iniciando o treinamento do modelo RandomForestRegressor...
+Treinamento finalizado.
+Salvando modelo em models\permanencia_model_publica.joblib
+Mean Squared Error (MSE): 0.05
+R-squared (R2): 0.78
+
+--- Processando Dados para Institui��es do Tipo: PRIVADA ---
+--- Etapa 3A: Pr�-processando dados para K-Prototypes (privada) ---
+For�ando colunas conhecidas para 'category' em df_prep...
+--- Etapa 3B: Treinando K-Prototypes (k=14) para 'privada' ---
+
+Iniciando K-Prototypes com 14 clusters...
+Clusteriza��o conclu�da.
+Salvando modelo em models\kmeans_model_privada.joblib
+--- Etapa 3C: Feature 'cluster' adicionada ao DataFrame 'privada' ---
+
+--- Analisando Vari�veis Discriminantes (Drivers) dos Clusters (privada) ---
+Treinando Random Forest para Feature Importance...
+Tabela de import�ncia dos drivers salva em: reports\clustering\privada\cluster_drivers_importance_privada.csv
+Gr�fico de drivers salvo em: reports\clustering\privada\figures\cluster_drivers_plot_privada.png
+Gerando regras de decis�o simples (Decision Tree)...
+Regras de decis�o (texto) salvas em: reports\clustering\privada\cluster_rules_privada.txt
+
+--- Analisando Import�ncia Relativa (Z-Score) - PRIVADA ---
+Heatmap AGREGADO de import�ncia relativa salvo em: reports\clustering\privada\figures\cluster_heatmap_relative_aggregated_privada.png
+Heatmap DETALHADO de import�ncia relativa salvo em: reports\clustering\privada\figures\cluster_heatmap_relative_detailed_privada.png
+--- Etapa 3D: Analisando Perfil dos Clusters (privada) ---
+
+Distribui��o dos Clusters (privada):
+cluster
+0      6764
+1     11332
+2      3177
+3      2386
+4      2859
+5      6863
+6       475
+7      7354
+8     11919
+9      9474
+10     7476
+11     3702
+12     2724
+13    11916
+Name: count, dtype: int64
+
+--- Perfil Num�rico (M�dias) dos Clusters (privada) ---
+              igc           pib  ...  duracao_ideal_anos  faixa_etaria
+cluster                          ...                                  
+0        2.579819  3.307124e+08  ...            4.810911      6.056328
+1        2.644731  2.379978e+08  ...            4.666211      2.854483
+2        2.730610  1.143424e+09  ...            2.280453      3.502361
+3        2.574556  9.543702e+08  ...            4.805951      3.405700
+4        2.734710  4.626953e+08  ...            5.487758      9.413781
+5        2.456901  2.348338e+09  ...            4.804094      3.072126
+6        3.155751  8.952806e+08  ...            7.301053      2.922105
+7        2.218699  4.485098e+08  ...            4.830568      3.003535
+8        2.944761  4.920681e+08  ...            4.770367      2.851833
+9        2.793264  3.087744e+08  ...            9.211104      3.219232
+10       3.383126  3.410023e+08  ...            4.688604      3.064741
+11       2.615447  2.348226e+09  ...            4.650459      7.092653
+12       2.908325  8.197733e+08  ...            6.372430      3.185756
+13       2.991631  2.348257e+09  ...            4.507007      2.717355
+
+[14 rows x 7 columns]
+
+--- Perfil Categ�rico (Moda) dos Clusters (privada) ---
+         nu_ano_censo  ...  no_regiao_ies
+cluster                ...               
+0                2018  ...       Nordeste
+1                2019  ...       Nordeste
+2                2019  ...        Sudeste
+3                2018  ...        Sudeste
+4                2019  ...        Sudeste
+5                2019  ...        Sudeste
+6                2019  ...        Sudeste
+7                2018  ...        Sudeste
+8                2018  ...        Sudeste
+9                2018  ...            Sul
+10               2019  ...       Nordeste
+11               2018  ...        Sudeste
+12               2019  ...        Sudeste
+13               2018  ...        Sudeste
+
+[14 rows x 12 columns]
+--- An�lise de Perfil (privada) conclu�da. Relat�rios salvos em 'reports\clustering\privada' ---
+tp_cor_raca                        object
+tp_sexo                              bool
+faixa_etaria                      float64
+in_financiamento_estudantil       float64
+in_apoio_social                   float64
+tp_escola_conclusao_ens_medio      object
+sigla_uf_curso                     object
+tp_grau_academico                  object
+tp_modalidade_ensino               object
+nu_carga_horaria                    int64
+nm_categoria                       object
+pib                                 int64
+inscritos_por_vaga                float64
+tp_categoria_administrativa        object
+no_regiao_ies                      object
+igc                               float64
+duracao_ideal_anos                float64
+taxa_integralizacao               float64
+cluster                          category
+dtype: object
+Colunas num�ricas identificadas: ['tp_sexo', 'faixa_etaria', 'in_financiamento_estudantil', 'in_apoio_social', 'nu_carga_horaria', 'pib', 'inscritos_por_vaga', 'igc', 'duracao_ideal_anos']
+Colunas categ�ricas identificadas (baixa cardinalidade): ['tp_cor_raca', 'tp_escola_conclusao_ens_medio', 'sigla_uf_curso', 'tp_grau_academico', 'tp_modalidade_ensino', 'nm_categoria', 'tp_categoria_administrativa', 'no_regiao_ies', 'cluster']
+Colunas categ�ricas descartadas (alta cardinalidade): []
+
+--- Divis�o Treino/Teste ---
+Total de amostras restantes: 42983
+Amostras para Treinamento (80%): 34386
+Amostras para Teste (20%): 8597
+Pr�-processamento conclu�do.
+Salvando o pipeline de pr�-processamento em models\preprocessor_privada.joblib
+privada
+Iniciando o treinamento do modelo RandomForestRegressor...
+Treinamento finalizado.
+Salvando modelo em models\permanencia_model_privada.joblib
+Mean Squared Error (MSE): 0.05
+R-squared (R2): 0.61
+Gr�fico de import�ncia das features combinado salvo em: reports\figures\feature_importance_combined.png
+
+Gr�fico de import�ncia das features AGREGADO salvo em: reports\figures\feature_importance_agregada_RandomForest.png
+Relat�rio de m�tricas salvo em: reports\model_performance_metrics.csv
+
+--- Pipeline conclu�do com sucesso! ---
+
+
+--- SAÍDA DE ERRO (STDERR) ---
+
+INFO: Sistema de logging configurado. Logs salvos em: C:\Users\ktama\OneDrive\�rea de Trabalho\Lanem\RP2\RP2-G13\RP2-G13\logs\run_20251115_130041.log
+INFO: Iniciando o script principal...
+WARNING: Par�metro --skip-integration ativado. Carregando DataFrames de arquivos de amostra.
+INFO: Dados p�blicos carregados: 43612 linhas.
+INFO: Dados privados carregados: 88421 linhas.
+INFO: An�lise Comparativa conclu�da.
+INFO: [Clusteriza��o] Iniciando pr�-processamento K-Prototypes para 'publica'...
+INFO: Colunas num�ricas (padronizadas): ['faixa_etaria', 'nu_carga_horaria', 'pib', 'inscritos_por_vaga', 'igc', 'duracao_ideal_anos']
+INFO: Colunas categ�ricas (usadas como r�tulos): ['nu_ano_censo', 'tp_cor_raca', 'tp_sexo', 'in_financiamento_estudantil', 'in_apoio_social', 'tp_escola_conclusao_ens_medio', 'sigla_uf_curso', 'tp_grau_academico', 'tp_modalidade_ensino', 'nm_categoria', 'tp_categoria_administrativa', 'no_regiao_ies']
+INFO: �ndices das colunas categ�ricas: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+INFO: [Clusteriza��o] Treinando K-Prototypes (k=14) para 'publica'...
+INFO: [Clusteriza��o] Modelo K-Means salvo em 'kmeans_model_publica.joblib'.
+INFO: [Clusteriza��o] Feature 'cluster' (k=14) adicionada ao DataFrame 'publica'.
+INFO: [Clusteriza��o] Analisando drivers dos clusters para 'publica'...
+INFO: [Clusteriza��o] Analisando import�ncia relativa (Z-Score) para 'publica'...
+INFO: Colunas Num�ricas (input): ['faixa_etaria', 'nu_carga_horaria', 'pib', 'inscritos_por_vaga', 'igc', 'duracao_ideal_anos', 'taxa_integralizacao']
+INFO: Colunas Categ�ricas (inferidas): ['no_regiao_ies', 'nu_ano_censo', 'in_apoio_social', 'tp_escola_conclusao_ens_medio', 'tp_modalidade_ensino', 'nm_categoria', 'tp_grau_academico', 'sigla_uf_curso', 'tp_categoria_administrativa', 'tp_cor_raca', 'tp_sexo', 'in_financiamento_estudantil']
+INFO: Import�ncia relativa AGREGADA (num�ricas + categ�ricas agregadas) salva em: reports\clustering\publica\cluster_relative_importance_aggregated_publica.csv
+INFO: Import�ncia relativa (num�ricas + categ�ricas OHE) salva em: reports\clustering\publica\cluster_relative_importance_full_publica.csv
+INFO: Iniciando an�lise de perfil dos clusters para 'publica'...
+INFO: Distribui��o dos clusters para 'publica':
+cluster
+0     2176
+1     3091
+2     4806
+3     1180
+4     1461
+5      420
+6     3535
+7     2472
+8     5425
+9     2817
+10    6281
+11    4554
+12    1490
+13    3904
+INFO: Distribui��o salva em: reports\clustering\publica\cluster_distribution_publica.csv
+INFO: Perfil Num�rico (M�dias) dos Clusters (publica):
+              igc           pib  inscritos_por_vaga  nu_carga_horaria  taxa_integralizacao  duracao_ideal_anos  faixa_etaria
+cluster                                                                                                                     
+0        4.158328  2.348211e+09           10.744535       3523.825368             0.579630            4.805147      2.880515
+1        2.761293  2.348293e+09            6.744257       3566.830152             0.572083            4.377709      3.169524
+2        3.607379  4.166505e+08            6.422611       4068.750312             0.562319            4.849771      2.825010
+3        3.386964  4.182955e+08           37.810574       8460.055085             0.399216            7.313559      3.044068
+4        3.387562  4.375972e+08            9.976618       3217.624914             0.836945            4.631075      9.276523
+...           ...           ...                 ...               ...                  ...                 ...           ...
+9        2.955489  2.107286e+08            7.626149       3201.870075             0.914461            4.100639      5.464679
+10       2.792769  2.051938e+08            7.591505       3584.131030             0.562281            4.464576      2.665340
+11       3.740541  3.774792e+08            6.630354       3583.089811             0.292589            8.972552      2.799736
+12       3.190497  2.457484e+08            4.506678       3302.673826             0.443997            8.476510      6.427517
+13       2.846163  1.826828e+08            4.909863       3374.188268             0.314540            8.553023      2.849129
+INFO: Perfil num�rico salvo em: reports\clustering\publica\cluster_profile_numeric_publica.csv
+INFO: Perfil Categ�rico (Moda) dos Clusters (publica):
+         nu_ano_censo  tp_cor_raca  tp_sexo  in_financiamento_estudantil  in_apoio_social  ...  tp_modalidade_ensino  tp_categoria_administrativa  sigla_uf_curso                       nm_categoria no_regiao_ies
+cluster                                                                                    ...                                                                                                                    
+0                2019          1.0      1.0                          8.0              0.0  ...                     1                            2              SP  Engenharia, produ��o e constru��o       Sudeste
+1                2019          1.0      2.0                          8.0              0.0  ...                     1                            2              SP  Engenharia, produ��o e constru��o       Sudeste
+2                2018          1.0      2.0                          8.0              0.0  ...                     1                            1              PR  Engenharia, produ��o e constru��o           Sul
+3                2019          1.0      1.0                          8.0              0.0  ...                     1                            1              MG                  Sa�de e bem-estar      Nordeste
+4                2018          3.0      2.0                          8.0              0.0  ...                     1                            1              BA                           Educa��o      Nordeste
+...               ...          ...      ...                          ...              ...  ...                   ...                          ...             ...                                ...           ...
+9                2019          3.0      1.0                          8.0              0.0  ...                     1                            1              MA                           Educa��o      Nordeste
+10               2019          3.0      1.0                          8.0              0.0  ...                     1                            1              MG  Engenharia, produ��o e constru��o      Nordeste
+11               2019          1.0      1.0                          8.0              0.0  ...                     1                            1              RS                           Educa��o           Sul
+12               2018          3.0      1.0                          8.0              0.0  ...                     1                            1              BA                           Educa��o      Nordeste
+13               2018          3.0      1.0                          8.0              0.0  ...                     1                            2              AM                           Educa��o      Nordeste
+INFO: Perfil categ�rico salvo em: reports\clustering\publica\cluster_profile_categorical_publica.csv
+INFO: [Clusteriza��o] Iniciando pr�-processamento K-Prototypes para 'privada'...
+INFO: Colunas num�ricas (padronizadas): ['faixa_etaria', 'nu_carga_horaria', 'pib', 'inscritos_por_vaga', 'igc', 'duracao_ideal_anos']
+INFO: Colunas categ�ricas (usadas como r�tulos): ['nu_ano_censo', 'tp_cor_raca', 'tp_sexo', 'in_financiamento_estudantil', 'in_apoio_social', 'tp_escola_conclusao_ens_medio', 'sigla_uf_curso', 'tp_grau_academico', 'tp_modalidade_ensino', 'nm_categoria', 'tp_categoria_administrativa', 'no_regiao_ies']
+INFO: �ndices das colunas categ�ricas: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+INFO: [Clusteriza��o] Treinando K-Prototypes (k=14) para 'privada'...
+INFO: [Clusteriza��o] Modelo K-Means salvo em 'kmeans_model_privada.joblib'.
+INFO: [Clusteriza��o] Feature 'cluster' (k=14) adicionada ao DataFrame 'privada'.
+INFO: [Clusteriza��o] Analisando drivers dos clusters para 'privada'...
+INFO: [Clusteriza��o] Analisando import�ncia relativa (Z-Score) para 'privada'...
+INFO: Colunas Num�ricas (input): ['faixa_etaria', 'nu_carga_horaria', 'pib', 'inscritos_por_vaga', 'igc', 'duracao_ideal_anos', 'taxa_integralizacao']
+INFO: Colunas Categ�ricas (inferidas): ['no_regiao_ies', 'nu_ano_censo', 'in_apoio_social', 'tp_escola_conclusao_ens_medio', 'tp_modalidade_ensino', 'nm_categoria', 'tp_grau_academico', 'sigla_uf_curso', 'tp_categoria_administrativa', 'tp_cor_raca', 'tp_sexo', 'in_financiamento_estudantil']
+INFO: Import�ncia relativa AGREGADA (num�ricas + categ�ricas agregadas) salva em: reports\clustering\privada\cluster_relative_importance_aggregated_privada.csv
+INFO: Import�ncia relativa (num�ricas + categ�ricas OHE) salva em: reports\clustering\privada\cluster_relative_importance_full_privada.csv
+INFO: Iniciando an�lise de perfil dos clusters para 'privada'...
+INFO: Distribui��o dos clusters para 'privada':
+cluster
+0      6764
+1     11332
+2      3177
+3      2386
+4      2859
+5      6863
+6       475
+7      7354
+8     11919
+9      9474
+10     7476
+11     3702
+12     2724
+13    11916
+INFO: Distribui��o salva em: reports\clustering\privada\cluster_distribution_privada.csv
+INFO: Perfil Num�rico (M�dias) dos Clusters (privada):
+              igc           pib  inscritos_por_vaga  nu_carga_horaria  taxa_integralizacao  duracao_ideal_anos  faixa_etaria
+cluster                                                                                                                     
+0        2.579819  3.307124e+08            1.473251       3793.071112             0.608332            4.810911      6.056328
+1        2.644731  2.379978e+08            1.368555       3691.411313             0.503608            4.666211      2.854483
+2        2.730610  1.143424e+09            1.430917       1923.217186             0.711319            2.280453      3.502361
+3        2.574556  9.543702e+08            8.825211       3793.900251             0.495087            4.805951      3.405700
+4        2.734710  4.626953e+08            1.663232       3759.161595             0.577174            5.487758      9.413781
+...           ...           ...                 ...               ...                  ...                 ...           ...
+9        2.793264  3.087744e+08            1.826408       3722.487334             0.285034            9.211104      3.219232
+10       3.383126  3.410023e+08            1.745286       3693.940342             0.521633            4.688604      3.064741
+11       2.615447  2.348226e+09            2.599675       3710.868179             0.561951            4.650459      7.092653
+12       2.908325  8.197733e+08            6.206985       8404.511013             0.382985            6.372430      3.185756
+13       2.991631  2.348257e+09            2.535325       3690.695032             0.474570            4.507007      2.717355
+INFO: Perfil num�rico salvo em: reports\clustering\privada\cluster_profile_numeric_privada.csv
+INFO: Perfil Categ�rico (Moda) dos Clusters (privada):
+         nu_ano_censo  tp_cor_raca  tp_sexo  in_financiamento_estudantil  in_apoio_social  ...  tp_modalidade_ensino  tp_categoria_administrativa  sigla_uf_curso                       nm_categoria no_regiao_ies
+cluster                                                                                    ...                                                                                                                    
+0                2018          3.0      1.0                          1.0              0.0  ...                     1                            6              RJ  Neg�cios, administra��o e direito      Nordeste
+1                2019          3.0      2.0                          1.0              0.0  ...                     1                            6              BA  Neg�cios, administra��o e direito      Nordeste
+2                2019          1.0      1.0                          0.0              0.0  ...                     1                            6              SP  Neg�cios, administra��o e direito       Sudeste
+3                2018          1.0      1.0                          1.0              0.0  ...                     1                            6              SP  Neg�cios, administra��o e direito       Sudeste
+4                2019          1.0      1.0                          0.0              0.0  ...                     1                            6              RJ  Neg�cios, administra��o e direito       Sudeste
+...               ...          ...      ...                          ...              ...  ...                   ...                          ...             ...                                ...           ...
+9                2018          1.0      1.0                          1.0              0.0  ...                     1                            5              RS  Neg�cios, administra��o e direito           Sul
+10               2019          1.0      1.0                          0.0              0.0  ...                     1                            6              PR  Neg�cios, administra��o e direito      Nordeste
+11               2018          1.0      1.0                          0.0              0.0  ...                     1                            6              SP  Neg�cios, administra��o e direito       Sudeste
+12               2019          1.0      1.0                          0.0              0.0  ...                     1                            6              SP                  Sa�de e bem-estar       Sudeste
+13               2018          1.0      1.0                          0.0              0.0  ...                     1                            6              SP  Neg�cios, administra��o e direito       Sudeste
+INFO: Perfil categ�rico salvo em: reports\clustering\privada\cluster_profile_categorical_privada.csv

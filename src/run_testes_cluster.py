@@ -6,160 +6,190 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import joblib
 
-# Importações de Modelagem e Pré-processamento (Assumindo que estão corretas)
-from modeling.train import train_kmeans_model, predict_clusters, save_model
-from preprocessing.preprocessor import preprocess_for_kmeans # Função que retorna o array NumPy
+# Importações de Modelagem e Pré-processamento
+# ASSUMA QUE ESTAS FUNÇÕES ESTÃO DEFINIDAS NO SEU AMBIENTE
+from kmodes.kprototypes import KPrototypes
+import prince
+from sklearn.preprocessing import StandardScaler
 
-# Importações do Scikit-learn
-from sklearn.metrics import silhouette_score
-from sklearn.cluster import MiniBatchKMeans, KMeans
-# from sklearn_extra.cluster import KMedoids
-from sklearn.decomposition import PCA
+# ====================================================================
+# VARIÁVEIS E FUNÇÕES DE MOCK (NECESSÁRIAS PARA ESTE BLOCO FUNCIONAR)
+# VOCÊ DEVE SUBSTITUIR ISSO PELAS SUAS FUNÇÕES REAIS
+# ====================================================================
+
+# Lista de colunas categóricas (precisa ser definida globalmente)
+COLUNAS_CATEGORICAS_CONHECIDAS = [
+    'nu_ano_censo', 'tp_cor_raca', 'tp_sexo', 'in_financiamento_estudantil', 
+    'in_apoio_social', 'tp_escola_conclusao_ens_medio', 'tp_grau_academico', 
+    'tp_modalidade_ensino', 'tp_categoria_administrativa'
+]
+
+def preparar_dados_para_kprototypes_v2(df, colunas_categoricas_conhecidas):
+    """ (Função de preparação robusta do K-Prototypes, adaptada para o uso) """
+    df_prep = df.copy()
+
+    for col in colunas_categoricas_conhecidas:
+        if col in df_prep.columns:
+            df_prep[col] = df_prep[col].astype('category')
+            
+    num_cols = df_prep.select_dtypes(include=np.number).columns
+    cat_cols = df_prep.select_dtypes(include=['object', 'category']).columns
+    
+    # Imputação Simples (mediana/moda)
+    for col in num_cols: df_prep[col] = df_prep[col].fillna(df_prep[col].median())
+    for col in cat_cols: df_prep[col] = df_prep[col].fillna(df_prep[col].mode()[0])
+    
+    # Padronização
+    if len(num_cols) > 0:
+        scaler = StandardScaler()
+        df_prep[num_cols] = scaler.fit_transform(df_prep[num_cols])
+    
+    cat_indices = [df_prep.columns.get_loc(c) for c in cat_cols]
+    data_matrix = df_prep.values
+    
+    return data_matrix, cat_indices, cat_cols, df_prep # Retornando cat_cols para a visualização
+
+
+def save_model(model, path):
+    """ Função de mock para salvar o modelo """
+    joblib.dump(model, path)
+    return True
+
+# FIM DAS FUNÇÕES DE MOCK
+# ====================================================================
+
 
 # Configurações de Caminho
 MODELS_PATH = 'models'
-REPORTS_PATH = 'reports'
+REPORTS_PATH = 'reports/clustering'
 os.makedirs(MODELS_PATH, exist_ok=True)
 os.makedirs(REPORTS_PATH, exist_ok=True)
 
 def run_clustering_tests(df: pd.DataFrame, name: str, k_min: int, k_max: int):
     """
-    Executa a busca pelo melhor K (clusters) em um dataset, usando Inércia e Silhouette Score.
+    Executa a busca pelo melhor K (clusters) em um dataset, usando o Custo do K-Prototypes.
     """
-    print(f"\n--- Iniciando testes de Clustering para: {name.upper()} ---")
+    print(f"\n--- Iniciando testes de Clustering K-Prototypes para: {name.upper()} ---")
 
-    # 1. Pré-processamento
+    # 1. Pré-processamento (Usando a função de K-Prototypes)
     try:
-        # X_kmeans é o array NumPy pronto (numérico e escalado)
-        X_kmeans, kmeans_feature_names = preprocess_for_kmeans(df.copy())
+        # X_kproto é o array NumPy, cat_indices são os índices categóricos
+        X_kproto, cat_indices, cat_col_names, X_kproto_df = preparar_dados_para_kprototypes_v2(df.copy(), COLUNAS_CATEGORICAS_CONHECIDAS)
     except Exception as e:
         print(f"ERRO DE PRÉ-PROCESSAMENTO: Falha ao preparar os dados. {e}")
         return
 
-    inertia_scores = []
-    silhouette_scores = []
+    cost_scores = []
     k_range = range(k_min, k_max + 1)
     
-    best_k_silhouette = -1
-    best_silhouette_score = -1.0
-    best_kmeans_model = None
+    # Não usaremos Silhouette Score, mas procuraremos o modelo com o menor Custo
+    # (Embora o Cotovelo seja visual, guardar o melhor custo é uma boa prática)
+    best_k_cost = -1
+    best_cost_score = np.inf 
+    best_kprototypes_model = None
 
-    # 2. Busca pelo melhor K
+    # 2. Busca pelo melhor K (usando o Custo)
     for k in k_range:
         try:
-            # Treinamento do modelo (usando MiniBatchKMeans)
-            kmeans_model = train_kmeans_model(X_kmeans, n_clusters=k)
-            labels = predict_clusters(kmeans_model, X_kmeans)
+            # Treinamento do modelo K-Prototypes
+            kprototypes_model = KPrototypes(
+                n_clusters=k, 
+                init='Cao', 
+                n_init=10, # Aumentado n_init para maior robustez
+                verbose=0,
+                n_jobs=-1,
+                random_state=42
+            )
             
-            # Coleta da Inércia (Método do Cotovelo)
-            inertia = kmeans_model.inertia_
-            inertia_scores.append(inertia)
+            # fit_predict retorna os labels, mas o fit calcula o cost_
+            labels = kprototypes_model.fit_predict(X_kproto, categorical=cat_indices)
+            
+            # Coleta do Custo (Método do Cotovelo para K-Prototypes)
+            cost = kprototypes_model.cost_
+            cost_scores.append(cost)
 
-            # Coleta do Silhouette Score (Requer K > 1)
-            if k > 1 and len(set(labels)) > 1:
-                score = silhouette_score(X_kmeans, labels)
-                silhouette_scores.append(score)
+            # Buscando o K que resultou no menor custo (Mínimo local é o ideal)
+            if cost < best_cost_score:
+                best_cost_score = cost
+                best_k_cost = k
+                best_kprototypes_model = kprototypes_model
 
-                if score > best_silhouette_score:
-                    best_silhouette_score = score
-                    best_k_silhouette = k
-                    best_kmeans_model = kmeans_model
-            else:
-                silhouette_scores.append(np.nan)
-
-            print(f"K={k}: Inércia={inertia:.2f}, Silhouette={score:.4f} (Melhor K atual: {best_k_silhouette})")
+            print(f"K={k}: Custo={cost:.2f} Melhor K até o momento: {best_k_cost})")
             
         except Exception as e:
             print(f"Erro ao testar K={k}: {e}. Pulando este K.")
-            inertia_scores.append(np.nan)
-            silhouette_scores.append(np.nan)
+            cost_scores.append(np.nan)
             continue
             
-    # 3. Geração de Gráficos de Avaliação
+    # 3. Geração de Gráfico de Avaliação (Método do Cotovelo com Custo)
 
-    # Gráfico do Método do Cotovelo (Inércia)
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1, 2, 1)
-    plt.plot(k_range, inertia_scores, marker='o')
-    plt.title(f'Método do Cotovelo (Inércia) - {name.upper()}')
+    # Gráfico do Método do Cotovelo (Custo)
+    plt.figure(figsize=(10, 6))
+    plt.plot(k_range, cost_scores, marker='o', color='blue')
+    plt.title(f'Método do Cotovelo (Custo K-Prototypes) - {name.upper()}')
     plt.xlabel('Número de Clusters (K)')
-    plt.ylabel('Inércia')
-
-    # Gráfico do Silhouette Score
-    plt.subplot(1, 2, 2)
-    # Ajusta o K-range para Silhouette, que começa em K=2
-    k_silhouette_range = [k for k in k_range if k > 1 and not np.isnan(silhouette_scores[k-k_min])]
-    silhouette_plot_scores = [s for s in silhouette_scores if not np.isnan(s)]
+    plt.ylabel('Custo (Dispersão Combinada)')
+    plt.xticks(k_range)
+    plt.grid(True)
     
-    if silhouette_plot_scores:
-        plt.plot(k_silhouette_range, silhouette_plot_scores, marker='o', color='red')
-        plt.title(f'Silhouette Score - {name.upper()}')
-        plt.xlabel('Número de Clusters (K)')
-        plt.ylabel('Score de Silhueta Médio')
-        
-    plot_path = os.path.join(REPORTS_PATH, f'clustering_metrics_{name}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
+    plot_path = os.path.join(REPORTS_PATH, f'figures/kprototypes_cost_metric_{name}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
     plt.tight_layout()
     plt.savefig(plot_path)
     plt.close()
-    print(f"Gráficos de avaliação salvos em: {plot_path}")
+    print(f"Gráfico do Método do Cotovelo salvo em: {plot_path}")
 
     # 4. Salvamento do Melhor Modelo
-    if best_kmeans_model:
-        model_path = os.path.join(MODELS_PATH, f'KMeans_{name}_BEST_K{best_k_silhouette}.joblib')
-        save_model(best_kmeans_model, model_path)
-        print(f"Melhor modelo K-Means (K={best_k_silhouette}, Silhouette={best_silhouette_score:.4f}) salvo em: {model_path}")
-        print(f"Gerando visualização do melhor cluster (K={best_k_silhouette}) usando PCA...")
+    if best_kprototypes_model:
+        model_path = os.path.join(MODELS_PATH, f'KPrototypes_{name}_BEST_K{best_k_cost}.joblib')
+        save_model(best_kprototypes_model, model_path)
+        print(f"Melhor modelo K-Prototypes (K={best_k_cost}, Custo={best_cost_score:.4f}) salvo em: {model_path}")
+        print(f"Gerando visualização do melhor cluster (K={best_k_cost}) usando TSNE...")
 
         try:
-            # a) Redução de Dimensionalidade
-            # Use PCA para reduzir os dados pré-processados para 2 componentes.
-            pca = PCA(n_components=2)
-            X_pca = pca.fit_transform(X_kmeans)
+            # PCA não suporta dados mistos por isso usa-se o FAMD (Factor Analysis of Mixed Data)
+            # a) Redução de Dimensionalidade com FAMD
+            final_labels = best_kprototypes_model.predict(X_kproto, categorical=cat_indices)
+
+            # b) Redução de Dimensionalidade (Abordagem Mista: FAMD + t-SNE)
             
-            # b) Atribuição de Labels
-            # Prevemos os clusters usando o melhor modelo encontrado
-            final_labels = predict_clusters(best_kmeans_model, X_kmeans)
-            
-            # c) Plotagem
+            # 1. Primeiro, usamos o FAMD para converter dados mistos e reduzir o ruído
+            # Vamos reduzir para 10 componentes (um bom ponto de partida)
+            famd = prince.FAMD(n_components=10, random_state=42)
+            # X_kproto_df é o DataFrame processado que sua função helper agora retorna
+            X_famd_reduced = famd.fit_transform(X_kproto_df) 
+
+            # 2. Agora, aplicamos o t-SNE sobre os 10 componentes do FAMD
+            # O t-SNE é excelente para criar "ilhas" visuais
+            from sklearn.manifold import TSNE
+            tsne = TSNE(n_components=2, perplexity=30, max_iter=1000, random_state=42, n_jobs=-1)
+            X_tsne = tsne.fit_transform(X_famd_reduced)
+
+            # c) Plotagem (Usando os resultados do t-SNE)
             plt.figure(figsize=(8, 8))
-            
-            # Usamos as labels para colorir o gráfico
             scatter = plt.scatter(
-                X_pca[:, 0], 
-                X_pca[:, 1], 
+                X_tsne[:, 0], # Eixo X do t-SNE
+                X_tsne[:, 1], # Eixo Y do t-SNE
                 c=final_labels, 
                 cmap='viridis', 
                 s=20, 
-                alpha=0.6
+                alpha=0.7
             )
             
-            # d) Adicionar os Centróides ao Gráfico (também projetados em 2D)
-            # Projetamos os centróides do melhor modelo com o mesmo PCA
-            centroids_pca = pca.transform(best_kmeans_model.cluster_centers_)
-            plt.scatter(
-                centroids_pca[:, 0], 
-                centroids_pca[:, 1], 
-                marker='X', # Marcador diferente para o centróide
-                s=200, 
-                c='black', 
-                label='Centróides'
-            )
+            plt.title(f'Visualização K-Prototypes (K={best_k_cost}) - {name.upper()} - Redução t-SNE (via FAMD)')
+            plt.xlabel('Componente t-SNE 1')
+            plt.ylabel('Componente t-SNE 2')
+            plt.legend(*scatter.legend_elements(), title=f"Clusters (K={best_k_cost})")
             
-            plt.title(f'Visualização K-Means (K={best_k_silhouette}) - {name.upper()} - Redução PCA')
-            plt.xlabel('Componente Principal 1')
-            plt.ylabel('Componente Principal 2')
-            plt.legend(*scatter.legend_elements(), title="Clusters")
-            
-            viz_path = os.path.join(REPORTS_PATH, f'cluster_viz_{name}_K{best_k_silhouette}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
+            viz_path = os.path.join(REPORTS_PATH, f'figures/cluster_viz_tsne_{name}_K{best_k_cost}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
             plt.savefig(viz_path)
             plt.close()
-            print(f"Visualização de Cluster salva em: {viz_path}")
+            print(f"Visualização de Cluster (t-SNE) salva em: {viz_path}")
 
         except Exception as e:
-            print(f"AVISO: Falha ao gerar visualização PCA. Verifique se há dados suficientes para PCA. Erro: {e}")
-        
+            print(f"AVISO: Falha ao gerar visualização FAMD. Erro: {e}")
+            
     else:
-        print("Nenhum modelo K-Means válido pôde ser salvo.")
+        print("Nenhum modelo K-Prototypes válido pôde ser salvo.")
 
 def main():
     # Carrega os dados de amostra (Ajuste o caminho se necessário)

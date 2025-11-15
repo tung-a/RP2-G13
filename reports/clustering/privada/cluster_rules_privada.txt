@@ -1,0 +1,16 @@
+Regras de Decisão Simplificadas para Clusters - PRIVADA
+================================================================================
+
+|--- pib <= 0.62
+|   |--- taxa_integralizacao <= 9.52
+|   |   |--- duracao_ideal_anos <= -1.69
+|   |   |   |--- class: 1
+|   |   |--- duracao_ideal_anos >  -1.69
+|   |   |   |--- class: 1
+|   |--- taxa_integralizacao >  9.52
+|   |   |--- pib <= -0.66
+|   |   |   |--- class: 1
+|   |   |--- pib >  -0.66
+|   |   |   |--- class: 0
+|--- pib >  0.62
+|   |--- class: 0

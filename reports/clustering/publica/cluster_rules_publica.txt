@@ -1,0 +1,7 @@
+Regras de Decisão Simplificadas para Clusters - PUBLICA
+================================================================================
+
+|--- pib <= 1.27
+|   |--- class: 0
+|--- pib >  1.27
+|   |--- class: 1

@@ -1,3 +1,0 @@
-model,dataset,search_method,n_iterations,best_params,best_score,r2_score,mse
-Ridge,publica,random,20,"{'alpha': np.float64(98.42308858067881), 'solver': 'auto'}",-2.7039883028429705,0.11336715018023213,2.7191591564138973
-Ridge,privada,random,20,"{'alpha': np.float64(15.699452033620265), 'solver': 'lsqr'}",-1.888017277870299,0.08088162963414325,1.868586381595988

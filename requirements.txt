@@ -7,3 +7,4 @@ joblib
 dask[dataframe]
 lightgbm
 shap
+kmodes

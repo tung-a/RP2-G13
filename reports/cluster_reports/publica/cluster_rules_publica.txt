@@ -1,0 +1,25 @@
+Regras de Decisão Simplificadas para Clusters - PUBLICA
+================================================================================
+
+|--- duracao_ideal_anos <= 0.10
+|   |--- nu_carga_horaria <= 0.80
+|   |   |--- taxa_integralizacao <= -0.78
+|   |   |   |--- class: 1
+|   |   |--- taxa_integralizacao >  -0.78
+|   |   |   |--- class: 1
+|   |--- nu_carga_horaria >  0.80
+|   |   |--- pib <= -0.47
+|   |   |   |--- class: 1
+|   |   |--- pib >  -0.47
+|   |   |   |--- class: 1
+|--- duracao_ideal_anos >  0.10
+|   |--- duracao_ideal_anos <= 0.59
+|   |   |--- nu_carga_horaria <= 2.47
+|   |   |   |--- class: 1
+|   |   |--- nu_carga_horaria >  2.47
+|   |   |   |--- class: 0
+|   |--- duracao_ideal_anos >  0.59
+|   |   |--- pib <= 1.37
+|   |   |   |--- class: 0
+|   |   |--- pib >  1.37
+|   |   |   |--- class: 0

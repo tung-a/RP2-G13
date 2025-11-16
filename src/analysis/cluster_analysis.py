@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 # Configura um logger para este módulo
 logger = logging.getLogger(__name__)
 
-def analyze_cluster_profiles(df_with_clusters: pd.DataFrame, dataset_name: str, reports_path: str):
+def analyze_cluster_profiles(df_with_clusters: pd.DataFrame, categorical_cols: list, dataset_name: str, reports_path: str):
     """
     Analisa um DataFrame que contém uma coluna 'cluster' para entender o perfil de cada cluster.
 
@@ -45,11 +45,12 @@ def analyze_cluster_profiles(df_with_clusters: pd.DataFrame, dataset_name: str, 
 
     # 3. "Quais as diferenças?" - Perfis Numéricos e Categóricos
     
-    # Identifica colunas numéricas (excluindo 'cluster' que é categórica)
     numeric_cols = df_with_clusters.select_dtypes(include=['number']).columns.tolist()
-    
-    # Identifica colunas categóricas/objeto
-    categorical_cols = df_with_clusters.select_dtypes(include=['object', 'category']).columns.tolist()
+    numeric_cols = [
+        col 
+        for col in numeric_cols 
+        if col not in categorical_cols and col != 'cluster'
+    ]
     
     # A coluna 'cluster' é categórica, mas não queremos analisá-la, queremos agrupar por ela.
     if 'cluster' in categorical_cols:
@@ -98,120 +99,255 @@ def analyze_cluster_profiles(df_with_clusters: pd.DataFrame, dataset_name: str, 
         
     print(f"--- Análise de Perfil ({dataset_name}) concluída. Relatórios salvos em '{reports_path}' ---")
 
+def setup_clustering_paths(reports_path, dataset_name):
+    cluster_reports_path = os.path.join(reports_path, 'cluster_reports', dataset_name)
+    figures_path = os.path.join(reports_path, 'figures', dataset_name)
+    os.makedirs(cluster_reports_path, exist_ok=True)
+    os.makedirs(figures_path, exist_ok=True)
+    return cluster_reports_path, figures_path
+
+# --- FUNÇÃO AUXILIAR PARA AGREGAÇÃO ---
+def _aggregate_categorical_zscores(df_zscore: pd.DataFrame, categorical_cols_original: list) -> pd.DataFrame:
+    """
+    Agrega Z-Scores de colunas One-Hot Encoded (OHE) de volta para a variável categórica original.
+    O score agregado é a média do valor absoluto dos Z-Scores das categorias para cada cluster.
+    """
+    aggregated_scores = {}
+    
+    # Itera sobre a lista original de categóricas
+    for original_col in categorical_cols_original:
+        # Encontra todas as colunas que começam com o prefixo da variável original no DataFrame de Z-Scores
+        prefix = f'{original_col}_'
+        ohe_cols = [col for col in df_zscore.columns if col.startswith(prefix)]
+        
+        if ohe_cols:
+            # Seleciona as colunas OHE
+            df_ohe_zscores = df_zscore[ohe_cols]
+            
+            # 1. Calcula o Valor Absoluto para capturar o "poder de distinção" em ambas as direções
+            df_abs_zscores = np.abs(df_ohe_zscores)
+            
+            # 2. Calcula a média ao longo das colunas (axis=1) -> Agrega por cluster
+            aggregated_scores[original_col] = df_abs_zscores.mean(axis=1)
+        else:
+            logger.warning(f"Nenhuma coluna OHE encontrada para o prefixo '{prefix}'. Verifique a codificação.")
+
+    # Converte o dicionário de scores agregados para DataFrame
+    df_aggregated = pd.DataFrame(aggregated_scores)
+    
+    return df_aggregated
+
 def analyze_relative_importance(df_with_clusters: pd.DataFrame, numeric_cols: list, dataset_name: str, reports_path: str):
     """
     Calcula a importância relativa (Z-Score) das médias dos clusters em relação à média global.
-    Gera um mapa de calor (heatmap) que facilita a visualização das características distintivas.
-
-    Interpretação do Z-Score:
-    - Valor positivo alto (> 0.5): O cluster tem um valor muito ACIMA da média global para essa feature.
-    - Valor negativo alto (< -0.5): O cluster tem um valor muito ABAIXO da média global.
-    - Próximo de 0: O cluster está na média.
+    Gera dois heatmaps e salva dois CSVs:
+    1. Detalhado (Numéricas + Categóricas OHE).
+    2. Agregado (Numéricas Originais + Categóricas Agregadas - Média do Absoluto).
 
     Args:
         df_with_clusters (pd.DataFrame): O DataFrame original com a coluna 'cluster'.
         numeric_cols (list): Lista das colunas numéricas a analisar.
         dataset_name (str): Nome do dataset (ex: 'publica').
-        reports_path (str): Caminho para salvar os gráficos.
+        reports_path (str): Caminho para salvar os gráficos e relatórios.
     """
+    cluster_reports_path, figures_path = setup_clustering_paths(reports_path, dataset_name)
+    
     print(f"\n--- Analisando Importância Relativa (Z-Score) - {dataset_name.upper()} ---")
     
     try:
-        # --- CORREÇÃO: Converter explicitamente para float para evitar erros com Int64/booleans no Seaborn ---
-        data_numeric = df_with_clusters[numeric_cols].astype(float)
         cluster_labels = df_with_clusters['cluster']
 
-        # Médias e Desvios Padrão Globais
-        global_mean = data_numeric.mean()
-        global_std = data_numeric.std()
+        # 1. Identificar Colunas
+        final_numeric_cols = [col for col in numeric_cols if col in df_with_clusters.columns and col != 'cluster']
+        all_cols = set(df_with_clusters.columns)
+        excluded_cols = set(final_numeric_cols) | {'cluster'}
+        categorical_cols = [col for col in all_cols if col not in excluded_cols]
         
-        # Médias por Cluster
-        cluster_means = data_numeric.groupby(cluster_labels, observed=True).mean()
-        
-        # Cálculo do Z-Score: (Média Cluster - Média Global) / Desvio Padrão Global
-        # Adicionamos um pequeno valor ao std para evitar divisão por zero
-        relative_importance = (cluster_means - global_mean) / (global_std + 1e-9)
-        
-        # Preencher NaNs com 0 (caso desvio padrão seja 0)
-        relative_importance = relative_importance.fillna(0)
+        logger.info(f"Colunas Numéricas (input): {final_numeric_cols}")
+        logger.info(f"Colunas Categóricas (inferidas): {categorical_cols}")
 
-        # Salvar CSV
-        path = os.path.join(reports_path, f'cluster_relative_importance_{dataset_name}.csv')
-        relative_importance.to_csv(path)
-        logger.info(f"Importância relativa salva em: {path}")
+        # 2. PRÉ-PROCESSAMENTO: Codificação e Combinação
+        data_numeric_orig = df_with_clusters[final_numeric_cols].astype(float)
         
-        # Plotar Heatmap
-        plt.figure(figsize=(14, 10))
-        # Transpomos (.T) para que features fiquem no eixo Y e clusters no X
-        sns.heatmap(relative_importance.T, cmap='RdBu_r', center=0, annot=True, fmt=".2f", linewidths=.5)
-        plt.title(f'Perfil Relativo dos Clusters (Z-Score) - {dataset_name.upper()}', fontsize=16)
+        if categorical_cols:
+            df_categorical_encoded = pd.get_dummies(
+                df_with_clusters[categorical_cols], 
+                columns=categorical_cols, 
+                prefix=categorical_cols, 
+                drop_first=False
+            ).astype(float)
+            data_all = pd.concat([data_numeric_orig, df_categorical_encoded], axis=1)
+        else:
+            data_all = data_numeric_orig
+            
+        # 3. CÁLCULO DO Z-SCORE (em 'data_all')
+        global_mean = data_all.mean()
+        global_std = data_all.std()
+        cluster_means = data_all.groupby(cluster_labels, observed=True).mean()
+        
+        # Cálculo do Z-Score para todas as features (numéricas e OHE)
+        relative_importance = (cluster_means - global_mean) / (global_std + 1e-9)
+        relative_importance = relative_importance.fillna(0) # Preenche NaNs com 0
+
+        # 4. GERAÇÃO DO DATAFRAME AGREGADO (para a "visão mais específica")
+        
+        # A. Seleciona os Z-Scores das colunas numéricas originais
+        relative_importance_numeric = relative_importance[final_numeric_cols]
+        
+        # B. Agrega os Z-Scores das colunas categóricas OHE
+        if categorical_cols:
+            df_aggregated_categorical = _aggregate_categorical_zscores(relative_importance.copy(), categorical_cols)
+            
+            # C. Combina os Z-Scores numéricos e os scores categóricos agregados
+            relative_importance_aggregated = pd.concat([relative_importance_numeric, df_aggregated_categorical], axis=1)
+            
+            # --- SALVAR CSV AGREGADO ---
+            path_agg = os.path.join(cluster_reports_path, f'cluster_relative_importance_aggregated_{dataset_name}.csv')
+            relative_importance_aggregated.to_csv(path_agg)
+            logger.info(f"Importância relativa AGREGADA (numéricas + categóricas agregadas) salva em: {path_agg}")
+            
+            # 5. PLOTAGEM DO HEATMAP AGREGADO
+            
+            # Plotar Heatmap Agregado (Visão de alto nível)
+            plt.figure(figsize=(12, max(8, len(relative_importance_aggregated.columns) * 0.5)))
+            
+            sns.heatmap(
+                relative_importance_aggregated.T, 
+                cmap='viridis', 
+                annot=True, 
+                fmt=".2f", 
+                linewidths=.5,
+                cbar_kws={'label': 'Z-Score (Numéricas) / Média do |Z-Score| (Categóricas)'}
+            )
+            plt.title(f'Perfil Agregado dos Clusters (Z-Score e Média Absoluta) - {dataset_name.upper()}', fontsize=16)
+            plt.xlabel('Cluster', fontsize=12)
+            plt.ylabel('Feature (Numéricas Originais e Categóricas Agregadas)', fontsize=12)
+            plt.tight_layout()
+            
+            plot_path_agg = os.path.join(figures_path, f'cluster_heatmap_relative_aggregated_{dataset_name}.png')
+            plt.savefig(plot_path_agg)
+            plt.close()
+            print(f"Heatmap AGREGADO de importância relativa salvo em: {plot_path_agg}")
+            
+        else:
+            print("Não há colunas categóricas para agregar. Gerando apenas o relatório numérico.")
+            relative_importance_aggregated = relative_importance_numeric
+
+        # --- GERAÇÃO E SALVAMENTO DO RELATÓRIO DETALHADO (OHE) ---
+        
+        # Salvar CSV Completo (Detalhado OHE)
+        path = os.path.join(cluster_reports_path, f'cluster_relative_importance_full_{dataset_name}.csv')
+        relative_importance.to_csv(path)
+        logger.info(f"Importância relativa (numéricas + categóricas OHE) salva em: {path}")
+        
+        # Plotar Heatmap Completo (Detalhado OHE)
+        plt.figure(figsize=(16, max(10, len(relative_importance.columns) * 0.3)))
+        annot_val = True if len(relative_importance.columns) < 30 else False
+        
+        sns.heatmap(
+            relative_importance.T, 
+            cmap='RdBu_r', 
+            center=0, 
+            annot=annot_val, 
+            fmt=".2f", 
+            linewidths=.5,
+            cbar_kws={'label': 'Z-Score'}
+        )
+        plt.title(f'Perfil Relativo dos Clusters (Z-Score) - {dataset_name.upper()} (Detalhado OHE)', fontsize=16)
         plt.xlabel('Cluster', fontsize=12)
-        plt.ylabel('Feature', fontsize=12)
+        plt.ylabel('Feature (Numéricas + Categóricas Codificadas OHE)', fontsize=12)
         plt.tight_layout()
         
-        plot_path = os.path.join(reports_path, f'cluster_heatmap_relative_{dataset_name}.png')
+        plot_path = os.path.join(figures_path, f'cluster_heatmap_relative_detailed_{dataset_name}.png')
         plt.savefig(plot_path)
         plt.close()
-        print(f"Heatmap de importância relativa salvo em: {plot_path}")
+        print(f"Heatmap DETALHADO de importância relativa salvo em: {plot_path}")
+
 
     except Exception as e:
         logger.error(f"Erro na análise de importância relativa para '{dataset_name}': {e}", exc_info=True)
+        print(f"Erro: {e}. Verifique se as colunas categóricas não contêm estruturas aninhadas (listas/arrays).")
 
-def analyze_cluster_drivers(df_processed, cluster_labels, feature_names, dataset_name: str, reports_path: str):
+def analyze_cluster_drivers(df_features: pd.DataFrame, cluster_labels: np.ndarray, categorical_cols: list, dataset_name: str, reports_path: str):
     """
     Utiliza um classificador (Random Forest) para identificar quais variáveis são
     mais importantes para a distinção dos clusters formados.
-    Também gera regras de decisão simples (texto) usando uma Árvore de Decisão.
+    
+    Ajustado para aceitar o DataFrame de features e realizar o One-Hot Encoding
+    nas colunas categóricas antes de treinar os modelos.
 
     Args:
-        df_processed (numpy array): Os dados processados (X) usados no K-Means.
+        df_features (pd.DataFrame): O DataFrame de features (X) ANTES de ser transformado em array.
         cluster_labels (numpy array): Os labels (y) gerados pelo K-Means.
-        feature_names (list): Lista com os nomes das features.
+        categorical_cols (list): Lista das colunas categóricas (strings/objects) a serem codificadas.
         dataset_name (str): Nome do dataset.
         reports_path (str): Caminho para salvar os outputs.
     """
+    cluster_reports_path, figures_path = setup_clustering_paths(reports_path, dataset_name)
+    
     print(f"\n--- Analisando Variáveis Discriminantes (Drivers) dos Clusters ({dataset_name}) ---")
     
     try:
-        # 1. Treinar Random Forest para obter a importância das features
-        # Usamos um modelo robusto para capturar relações complexas
+        # 1. Pré-processamento: Lidar com colunas categóricas (One-Hot Encoding)
+        # Assumimos que as colunas numéricas restantes já estão limpas.
+        df_encoded = pd.get_dummies(df_features, columns=categorical_cols, drop_first=False)
+        
+        # Garante que X é um array NumPy numérico para o Scikit-learn
+        # Seleciona apenas as colunas que são numéricas no DataFrame codificado
+        X = df_encoded.select_dtypes(include=np.number).values
+        
+        # Obtém os nomes finais das features após a codificação (IMPORTANTE!)
+        feature_names_final = df_encoded.select_dtypes(include=np.number).columns.tolist()
+        
+        # Verifica consistência
+        if len(X) != len(cluster_labels):
+            logger.error("Erro: Número de observações no DataFrame de features não corresponde ao número de labels de cluster.")
+            return
+
+        # 2. Treinar Random Forest para obter a importância das features
+        print("Treinando Random Forest para Feature Importance...")
         clf = RandomForestClassifier(n_estimators=100, random_state=42, max_depth=10, n_jobs=-1)
-        clf.fit(df_processed, cluster_labels)
+        
+        # CORREÇÃO CRÍTICA: Usar X (array codificado) para treinar
+        clf.fit(X, cluster_labels)
         
         # Criar DataFrame de importância
         importances = pd.DataFrame({
-            'feature': feature_names,
+            # CORREÇÃO CRÍTICA: Usar feature_names_final
+            'feature': feature_names_final,
             'importance': clf.feature_importances_
         }).sort_values('importance', ascending=False)
         
         # Salvar CSV de importância
-        csv_path = os.path.join(reports_path, f'cluster_drivers_importance_{dataset_name}.csv')
+        csv_path = os.path.join(cluster_reports_path, f'cluster_drivers_importance_{dataset_name}.csv')
         importances.to_csv(csv_path, index=False)
         print(f"Tabela de importância dos drivers salva em: {csv_path}")
         
         # Plotar as Top 20 variáveis que definem os clusters
         top_n = 20
         plt.figure(figsize=(12, 10))
-        # Correção para o aviso de depreciação do Seaborn: atribuir 'y' ao 'hue' e setar legend=False
         sns.barplot(data=importances.head(top_n), x='importance', y='feature', hue='feature', palette='viridis', legend=False)
         plt.title(f'Top {top_n} Variáveis Discriminantes dos Clusters - {dataset_name.upper()}', fontsize=16)
         plt.xlabel('Importância (Gini)', fontsize=12)
         plt.ylabel('Feature', fontsize=12)
         plt.tight_layout()
         
-        plot_path = os.path.join(reports_path, f'cluster_drivers_plot_{dataset_name}.png')
+        plot_path = os.path.join(figures_path, f'cluster_drivers_plot_{dataset_name}.png')
         plt.savefig(plot_path)
         plt.close()
         print(f"Gráfico de drivers salvo em: {plot_path}")
         
-        # 2. (Opcional) Gerar Regras Textuais com Árvore de Decisão Simples
-        # Usamos uma árvore pequena (max_depth=3) para gerar regras humanamente legíveis
+        # 3. Gerar Regras Textuais com Árvore de Decisão Simples
+        print("Gerando regras de decisão simples (Decision Tree)...")
         tree = DecisionTreeClassifier(max_depth=3, random_state=42)
-        tree.fit(df_processed, cluster_labels)
         
-        rules = export_text(tree, feature_names=list(feature_names))
+        # CORREÇÃO CRÍTICA: Usar X (array codificado) para treinar
+        tree.fit(X, cluster_labels)
         
-        txt_path = os.path.join(reports_path, f'cluster_rules_{dataset_name}.txt')
+        # CORREÇÃO CRÍTICA: Usar feature_names_final para as regras
+        rules = export_text(tree, feature_names=feature_names_final)
+        
+        txt_path = os.path.join(cluster_reports_path, f'cluster_rules_{dataset_name}.txt')
         with open(txt_path, 'w') as f:
             f.write(f"Regras de Decisão Simplificadas para Clusters - {dataset_name.upper()}\n")
             f.write("="*80 + "\n\n")

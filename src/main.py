@@ -2,10 +2,10 @@ import os
 import logging
 import argparse
 import pandas as pd
-import json # <--- Importante
+import json
 from data_processing.data_integration import load_and_integrate_data, split_by_institution_type
-from preprocessing.preprocessor import preprocess_data, save_preprocessor, preprocess_for_kmeans
-from modeling.train import train_model, evaluate_model, save_model, train_kmeans_model, predict_clusters
+from preprocessing.preprocessor import preprocess_data, save_preprocessor, preparar_dados_para_kprototypes
+from modeling.train import train_model, evaluate_model, save_model, train_kmeans_model, predict_clusters, train_kprototypes
 from analysis.regression_analysis import analyze_feature_importance, plot_combined_feature_importance, save_metrics_report, plot_combined_feature_importance_agregada
 # Importa a função de análise do tempo ideal
 from analysis.comparative_analysis import run_ideal_time_analysis
@@ -14,7 +14,11 @@ from analysis.cluster_analysis import analyze_cluster_profiles, analyze_cluster_
 from utils.log_config import setup_logging, get_dated_log_filename
 
 LOG_LEVEL = logging.INFO
-
+COLUNAS_CATEGORICAS_CONHECIDAS = [
+    'tp_cor_raca', 'tp_escola_conclusao_ens_medio', 'sigla_uf_curso',
+    'tp_grau_academico', 'tp_modalidade_ensino', 'nm_categoria', 
+    'tp_categoria_administrativa', 'no_regiao_ies','in_financiamento_estudantil'
+]
 
 def parse_args():
      
@@ -160,70 +164,75 @@ def main():
             
         print(f"\n--- Processando Dados para Instituições do Tipo: {name.upper()} ---")
 
-        logger.info(f"[Clusterização] Iniciando pré-processamento K-Means para '{name}'...")
-        print(f"--- Etapa 3A: Pré-processando dados para K-Means ({name}) ---")
+        logger.info(f"[Clusterização] Iniciando pré-processamento K-Prototypes para '{name}'...")
+        print(f"--- Etapa 3A: Pré-processando dados para K-Prototypes ({name}) ---")
         
         if not args.skip_clusters:
             try:
+                df_for_clustering = df.copy()
                 # 1. Pré-processar para K-Means (One-Hot Encoding, Scaling)
-                # Retorna um array NumPy e a lista de nomes das features
-                X_kmeans_numpy, kmeans_feature_names = preprocess_for_kmeans(df.copy())
-                
-                # 2. Treinar o modelo K-Means
+                X_kprototypes, kprotypes_indices, df_features_for_drivers = preparar_dados_para_kprototypes(df_for_clustering, COLUNAS_CATEGORICAS_CONHECIDAS)
+
+                # 2. Treinar o modelo K-Prototypes
                 n_clusters = k_clusters_map[name]
-                logger.info(f"[Clusterização] Treinando K-Means (k={n_clusters}) para '{name}'...")
-                print(f"--- Etapa 3B: Treinando K-Means (k={n_clusters}) para '{name}' ---")
+                logger.info(f"[Clusterização] Treinando K-Prototypes (k={n_clusters}) para '{name}'...")
+                print(f"--- Etapa 3B: Treinando K-Prototypes (k={n_clusters}) para '{name}' ---")
                 
-                kmeans_model = train_kmeans_model(X_kmeans_numpy, n_clusters, random_state=42)
+                kmeans_model, cluster_labels = train_kprototypes(X_kprototypes, kprotypes_indices, n_clusters= n_clusters, random_state=42)
+                
+                # ... (Resto do código permanece igual)
                 
                 # Salvar o modelo de cluster
                 save_model(kmeans_model, os.path.join(MODELS_PATH, f'kmeans_model_{name}.joblib'))
-                logger.info(f"[Clusterização] Modelo K-Means salvo em 'kmeans_model_{name}.joblib'.")
+                logger.info(f"[Clusterização] Modelo K-Prototypes salvo em 'kmeans_model_{name}.joblib'.")
 
-                # 3. Obter os labels (clusters)
-                logger.info(f"[Clusterização] Prevendo clusters para '{name}'...")
-                cluster_labels = predict_clusters(kmeans_model, X_kmeans_numpy)
-                
-                # 4. Adicionar os labels ao DataFrame original como uma NOVA FEATURE
+                # Esta função deve retornar um array NumPy (após .compute())
                 if len(cluster_labels) != len(df):
-                    logger.error(f"Discrepância no tamanho dos dados de cluster ({len(cluster_labels)}) e df original ({len(df)}) para '{name}'. Pulando regressão.", exc_info=True)
-                    continue
-                
-                # Adiciona a nova feature de cluster
-                df['cluster'] = cluster_labels
-                # Converte para 'category' para que o pré-processador da regressão
-                # trate esta coluna como categórica (e faça One-Hot Encoding nela)
-                df['cluster'] = df['cluster'].astype('category') 
-                
-                logger.info(f"[Clusterização] Feature 'cluster' (k={n_clusters}) adicionada ao DataFrame '{name}'.")
-                print(f"--- Etapa 3C: Feature 'cluster' adicionada ao DataFrame '{name}' ---")
+                    logger.error(f"Discrepância no tamanho dos dados de cluster ({len(cluster_labels)}) e df original ({len(df_for_clustering)}) para '{name}'. Pulando regressão.", exc_info=True)
+                else:
+                    # Adiciona a nova feature de cluster ao DataFrame **original** (df)
+                    df_for_clustering['cluster'] = cluster_labels
+                    df_for_clustering['cluster'] = df_for_clustering['cluster'].astype('category') 
+                    
+                    logger.info(f"[Clusterização] Feature 'cluster' (k={n_clusters}) adicionada ao DataFrame '{name}'.")
+                    print(f"--- Etapa 3C: Feature 'cluster' adicionada ao DataFrame '{name}' ---")
 
-                # --- Análise de Drivers dos Clusters (Surrogate Model) ---
-                logger.info(f"[Clusterização] Analisando drivers dos clusters para '{name}'...")
-                analyze_cluster_drivers(
-                    df_processed=X_kmeans_numpy, 
-                    cluster_labels=cluster_labels, 
-                    feature_names=kmeans_feature_names, 
-                    dataset_name=name, 
-                    reports_path=REPORTS_PATH
-                )
+                    logger.info(f"[Clusterização] Analisando drivers dos clusters para '{name}'...")
 
-                # --- Análise de Importância Relativa (Heatmap Z-Score) ---
-                logger.info(f"[Clusterização] Analisando importância relativa (Z-Score) para '{name}'...")
-                numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-                analyze_relative_importance(
-                    df_with_clusters=df,
-                    numeric_cols=numeric_cols,
-                    dataset_name=name,
-                    reports_path=REPORTS_PATH
-                )
+                    analyze_cluster_drivers(
+                        df_features= df_features_for_drivers, 
+                        cluster_labels=cluster_labels, 
+                        categorical_cols=COLUNAS_CATEGORICAS_CONHECIDAS,
+                        dataset_name=name, 
+                        reports_path=REPORTS_PATH
+                    )
 
-                # --- Análise Descritiva Original ---
-                analyze_cluster_profiles(df, name, REPORTS_PATH)
+                    # ... (Resto do código de análise permanece igual)
+                    
+                    logger.info(f"[Clusterização] Analisando importância relativa (Z-Score) para '{name}'...")
+                    numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+                    numeric_cols = [
+                        col 
+                        for col in numeric_cols 
+                        if col not in COLUNAS_CATEGORICAS_CONHECIDAS
+                    ]
+
+                    analyze_relative_importance(
+                        df_with_clusters=df_for_clustering,
+                        numeric_cols=numeric_cols,
+                        dataset_name=name,
+                        reports_path=REPORTS_PATH
+                    )
+                    analyze_cluster_profiles(
+                        df_with_clusters = df_for_clustering,
+                        dataset_name = name,
+                        categorical_cols= COLUNAS_CATEGORICAS_CONHECIDAS,
+                        reports_path= REPORTS_PATH
+                    )
 
             except Exception as e:
                 logger.error(f"Falha na etapa de CLUSTERIZAÇÃO para '{name}': {e}. Pulando para o próximo dataset.", exc_info=True)
-                continue # Pula para o próximo item (ex: 'privada')
+                continue
 
         # 4. Pré-processamento 
         X_train, X_test, y_train, y_test, preprocessor_pipeline = preprocess_data(df, target_column='taxa_integralizacao')

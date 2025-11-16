@@ -1,3 +1,6 @@
-cluster,sigla_uf_curso,nm_categoria,no_regiao_ies
-0,SP,"Negócios, administração e direito",Sudeste
-1,MG,"Negócios, administração e direito",Sudeste
+cluster,tp_cor_raca,tp_escola_conclusao_ens_medio,sigla_uf_curso,tp_grau_academico,tp_modalidade_ensino,nm_categoria,tp_categoria_administrativa,no_regiao_ies,in_financiamento_estudantil
+0,1.0,1.0,SP,1,1,"Negócios, administração e direito",6,Sudeste,1.0
+1,1.0,1.0,SP,1,1,"Negócios, administração e direito",6,Sudeste,1.0
+2,1.0,2.0,SP,1,1,Saúde e bem-estar,6,Sudeste,0.0
+3,1.0,1.0,SP,1,1,"Negócios, administração e direito",5,Sudeste,0.0
+4,1.0,1.0,RS,1,1,"Negócios, administração e direito",6,Sul,1.0

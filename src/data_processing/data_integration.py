@@ -213,6 +213,12 @@ def load_and_integrate_data(data_path, nivel_especifico_categoria:bool = True):
     final_df_pandas = final_df_dask.compute()
     final_df_pandas.dropna(inplace=True)
 
+    print("\n--- Análise das Features de Apoio Social e Financiamento ---")
+    
+    # Valores de 'in_financiamento_estudantil'
+    if 'in_financiamento_estudantil' in final_df_pandas.columns:
+        final_df_pandas['in_financiamento_estudantil'] = final_df_pandas['in_financiamento_estudantil'].astype('category')
+
     del final_df_dask, cursos_ies_df, igc_df, ies_df, cursos_df, alunos_dd
     gc.collect()
 
